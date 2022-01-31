@@ -1,0 +1,4 @@
+MOVZ r1, #1
+MOVZ r2, #2
+ADD r3, r1, r2
+HALT
