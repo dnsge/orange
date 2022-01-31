@@ -100,7 +100,7 @@ func EncodeMTypeInstruction(instruction MTypeInstruction) Instruction {
 	encoded |= uint32(instruction.Opcode) << opcodeOffset
 	encoded |= uint32(instruction.RegA) << m_aRegOffset
 	encoded |= uint32(instruction.RegB) << m_bRegOffset
-	encoded |= uint32(instruction.Immediate) << m_immOffset
+	encoded |= (uint32(instruction.Immediate) & 0xFFFF) << m_immOffset
 	return encoded
 }
 
@@ -160,7 +160,7 @@ func DecodeBTypeImmInstruction(instruction Instruction, opcode Opcode) BTypeImmI
 func EncodeBTypeImmInstruction(instruction BTypeImmInstruction) Instruction {
 	var encoded uint32 = 0
 	encoded |= uint32(instruction.Opcode) << opcodeOffset
-	encoded |= uint32(instruction.Offset) << b_immOffset
+	encoded |= (uint32(instruction.Offset) & 0xFFFF) << b_immOffset
 	return encoded
 }
 
