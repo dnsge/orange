@@ -32,8 +32,9 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 
 	for scanner.Scan() {
 		line := strings.Trim(scanner.Text(), " \t")
-		if line[0] == '.' && line[len(line)-1] == ':' { // label
-			labelName := line[1 : len(line)-1]
+		if line[0] == '.' { // label
+			line = strings.TrimSuffix(line, ":")
+			labelName := line[1:]
 			if _, ok := aContext.labels[labelName]; ok {
 				return fmt.Errorf("duplicate label definition for %q", labelName)
 			}
