@@ -39,6 +39,10 @@ func (v *VirtualMachine) executeATypeImmInstruction(instruction arch.ATypeImmIns
 		res = v.add(aVal, bVal)
 	case arch.SUBI:
 		res = v.sub(aVal, bVal)
+	case arch.LSL:
+		res = v.lsl(aVal, bVal)
+	case arch.LSR:
+		res = v.lsr(aVal, bVal)
 	default:
 		panic("invalid AImm-Type opcode")
 	}

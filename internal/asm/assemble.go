@@ -3,6 +3,7 @@ package asm
 import (
 	"fmt"
 	"github.com/dnsge/orange/internal/arch"
+	"math"
 	"strconv"
 )
 
@@ -163,12 +164,12 @@ func assembleBTypeInstruction(opcode arch.Opcode, args []string) (arch.Instructi
 	return arch.EncodeBTypeInstruction(instruction), nil
 }
 
-func assembleBTypeImmInstruction(opcode arch.Opcode, args []string) (arch.Instruction, error) {
+func assembleBTypeImmInstruction(opcode arch.Opcode, args []string, ctx *assemblyContext) (arch.Instruction, error) {
 	if len(args) != 1 {
 		return 0, ErrInvalidArgumentCount
 	}
 
-	offset, err := parseSignedImmediate(args[0])
+	offset, err := parseOffsetOrLabel(args[0], ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -282,4 +283,26 @@ func parseSignedImmediate(imm string) (int16, error) {
 	}
 
 	return val, nil
+}
+
+func parseOffsetOrLabel(text string, ctx *assemblyContext) (int16, error) {
+	if len(text) < 2 {
+		return 0, fmt.Errorf("invalid immediate %q", text)
+	}
+
+	if text[0] == '.' {
+		labelTarget, ok := ctx.labels[text[1:]]
+		if !ok {
+			return 0, fmt.Errorf("undefined label %q", text[1:])
+		}
+
+		instructionOffset := int32(labelTarget - ctx.currLine)
+		if instructionOffset > math.MaxInt16 || instructionOffset < math.MinInt16 {
+			return 0, fmt.Errorf("cannot branch to relative with offset %d", instructionOffset)
+		}
+
+		return int16(instructionOffset), nil
+	} else {
+		return parseSignedImmediate(text)
+	}
 }

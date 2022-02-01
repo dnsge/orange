@@ -11,7 +11,7 @@ var (
 	ErrInvalidOpcode    = fmt.Errorf("invalid opcode")
 )
 
-func ParseAssembly(line string) (arch.Instruction, error) {
+func (a *assemblyContext) ParseAssembly(line string) (arch.Instruction, error) {
 	if line == "" {
 		return 0, ErrEmptyInstruction
 	}
@@ -43,7 +43,7 @@ func ParseAssembly(line string) (arch.Instruction, error) {
 	case arch.IType_E:
 		return assembleETypeInstruction(opcode, args)
 	case arch.IType_BI:
-		return assembleBTypeImmInstruction(opcode, args)
+		return assembleBTypeImmInstruction(opcode, args, a)
 	case arch.IType_B:
 		return assembleBTypeInstruction(opcode, args)
 	case arch.IType_O:
