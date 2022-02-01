@@ -1,8 +1,0 @@
-    MOVZ r1, #10
-    MOVZ r2, #1
-.loop:
-    SUBI r1, r1, #1
-    LSL r2, r2, #1
-    CMP r1, r0
-    B.NEQ .loop
-    HALT
