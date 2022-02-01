@@ -35,13 +35,10 @@ func (b *block) Read(address uint32, size uint32) uint64 {
 		return uint64(b.data[dataStart])
 	case 16: // half-word read
 		return uint64(byteOrder.Uint16(b.data[dataStart : dataStart+2]))
-		//return joinByteSlice(b.data[dataStart : dataStart+2])
 	case 32: // word read
 		return uint64(byteOrder.Uint32(b.data[dataStart : dataStart+4]))
-		//return joinByteSlice(b.data[dataStart : dataStart+4])
 	case 64: // double word (register) read
-		return uint64(byteOrder.Uint64(b.data[dataStart : dataStart+8]))
-		//return joinByteSlice(b.data[dataStart : dataStart+8])
+		return byteOrder.Uint64(b.data[dataStart : dataStart+8])
 	default:
 		panic(fmt.Sprintf("invalid read size of %d", size))
 	}
@@ -54,33 +51,7 @@ func (b *block) Write(address uint32, size uint32, data uint64) {
 	bytes := size / 8
 	dataStart := address - b.startAddress
 	dataEnd := dataStart + bytes
-	var split []byte
+	split := make([]byte, 8)
 	byteOrder.PutUint64(split, data)
 	copy(b.data[dataStart:dataEnd], split)
-}
-
-func joinByteSlice(slice []byte) uint64 {
-	if len(slice) > 8 {
-		panic("can't join more than 8 bytes into uint64")
-	} else if len(slice) == 0 {
-		return 0
-	}
-
-	var res uint64 = 0
-	for i := len(slice) - 1; i >= 0; i-- {
-		res |= uint64(slice[i])
-		if i != 0 {
-			res <<= 8
-		}
-	}
-	return res
-}
-
-func splitUint64(num uint64, bytes uint32) (res []byte) {
-	res = make([]byte, bytes)
-	for i := uint32(0); i < bytes; i++ {
-		res[i] = byte(num & 0xFF)
-		num >>= 8
-	}
-	return
 }
