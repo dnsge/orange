@@ -1,6 +1,13 @@
 package memory
 
-import "fmt"
+import (
+	"encoding/binary"
+	"fmt"
+)
+
+var (
+	byteOrder = binary.LittleEndian
+)
 
 // block describes a virtual memory space containing [startAddress, endAddress)
 type block struct {
@@ -27,11 +34,14 @@ func (b *block) Read(address uint32, size uint32) uint64 {
 	case 8: // byte read
 		return uint64(b.data[dataStart])
 	case 16: // half-word read
-		return joinByteSlice(b.data[dataStart : dataStart+2])
+		return uint64(byteOrder.Uint16(b.data[dataStart : dataStart+2]))
+		//return joinByteSlice(b.data[dataStart : dataStart+2])
 	case 32: // word read
-		return joinByteSlice(b.data[dataStart : dataStart+4])
+		return uint64(byteOrder.Uint32(b.data[dataStart : dataStart+4]))
+		//return joinByteSlice(b.data[dataStart : dataStart+4])
 	case 64: // double word (register) read
-		return joinByteSlice(b.data[dataStart : dataStart+8])
+		return uint64(byteOrder.Uint64(b.data[dataStart : dataStart+8]))
+		//return joinByteSlice(b.data[dataStart : dataStart+8])
 	default:
 		panic(fmt.Sprintf("invalid read size of %d", size))
 	}
@@ -44,7 +54,8 @@ func (b *block) Write(address uint32, size uint32, data uint64) {
 	bytes := size / 8
 	dataStart := address - b.startAddress
 	dataEnd := dataStart + bytes
-	split := splitUint64(data, bytes)
+	var split []byte
+	byteOrder.PutUint64(split, data)
 	copy(b.data[dataStart:dataEnd], split)
 }
 

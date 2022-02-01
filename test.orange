@@ -1,4 +1,6 @@
-MOVZ r1, #1
-MOVZ r2, #2
-ADD r3, r1, r2
+MOVZ r10, #2
+MOVZ r1, #10
+SUBI r1, r1, #1
+CMP r0, r1
+B.NEQ #-8
 HALT

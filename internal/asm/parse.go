@@ -32,44 +32,21 @@ func ParseAssembly(line string) (arch.Instruction, error) {
 		args = tokens[1:]
 	}
 
-	switch opcode {
-	case arch.ADD,
-		arch.SUB,
-		arch.AND,
-		arch.OR,
-		arch.XOR,
-		arch.LSL,
-		arch.LSR,
-		arch.CMP:
+	iType := arch.GetInstructionType(opcode)
+	switch iType {
+	case arch.IType_A:
 		return assembleATypeInstruction(opcode, args)
-	case arch.ADDI,
-		arch.SUBI,
-		arch.CMPI:
+	case arch.IType_AI:
 		return assembleATypeImmInstruction(opcode, args)
-	case arch.LDREG,
-		arch.LDWORD,
-		arch.LDHWRD,
-		arch.LDBYTE,
-		arch.STREG,
-		arch.STWORD,
-		arch.STHWRD,
-		arch.STBYTE:
+	case arch.IType_M:
 		return assembleMTypeInstruction(opcode, args)
-	case arch.MOVZ,
-		arch.MOVK:
+	case arch.IType_E:
 		return assembleETypeInstruction(opcode, args)
-	case arch.B,
-		arch.B_EQ,
-		arch.B_NEQ,
-		arch.B_LT,
-		arch.B_LE,
-		arch.B_GT,
-		arch.B_GE:
+	case arch.IType_BI:
 		return assembleBTypeImmInstruction(opcode, args)
-	case arch.BREG:
+	case arch.IType_B:
 		return assembleBTypeInstruction(opcode, args)
-	case arch.HALT,
-		arch.NOOP:
+	case arch.IType_O:
 		return assembleOTypeInstruction(opcode, args)
 	default:
 		return 0, ErrInvalidOpcode

@@ -42,3 +42,61 @@ const (
 	HALT = 62
 	NOOP = 63
 )
+
+type InstructionType uint8
+
+const (
+	IType_Invalid InstructionType = iota
+	IType_A
+	IType_AI
+	IType_M
+	IType_E
+	IType_B
+	IType_BI
+	IType_O
+)
+
+func GetInstructionType(opcode Opcode) InstructionType {
+	switch opcode {
+	case ADD,
+		SUB,
+		AND,
+		OR,
+		XOR,
+		CMP:
+		return IType_A
+	case ADDI,
+		SUBI,
+		LSL,
+		LSR,
+		CMPI:
+		return IType_AI
+	case LDREG,
+		LDWORD,
+		LDHWRD,
+		LDBYTE,
+		STREG,
+		STWORD,
+		STHWRD,
+		STBYTE:
+		return IType_M
+	case MOVZ,
+		MOVK:
+		return IType_E
+	case B,
+		B_EQ,
+		B_NEQ,
+		B_LT,
+		B_LE,
+		B_GT,
+		B_GE:
+		return IType_BI
+	case BREG:
+		return IType_B
+	case HALT,
+		NOOP:
+		return IType_O
+	default:
+		return IType_Invalid
+	}
+}
