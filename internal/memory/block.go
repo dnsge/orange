@@ -19,7 +19,7 @@ type block struct {
 func allocateBlock(startAddress uint32, size uint32) *block {
 	return &block{
 		startAddress: startAddress,
-		endAddress:   startAddress + size - 1,
+		endAddress:   startAddress + size,
 		data:         make([]byte, size),
 	}
 }
