@@ -1,4 +1,6 @@
-.PHONY: asm vm
+.PHONY: asm vm all
+
+all: asm vm
 
 asm:
 	go build -o ./out/orangeasm ./cmd/orangeasm

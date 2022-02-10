@@ -1,23 +1,21 @@
 package asm
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/binary"
-	"fmt"
+	"github.com/dnsge/orange/internal/asm/lexer"
 	"io"
-	"strings"
 )
 
 type labelMap map[string]uint32
 
 type assemblyContext struct {
+	tokens   []*lexer.Token
 	labels   labelMap
 	currLine uint32
 }
 
 func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 	aContext := assemblyContext{
+		tokens:   nil,
 		labels:   make(labelMap),
 		currLine: 0,
 	}
@@ -27,40 +25,15 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 		return err
 	}
 
-	reader := bytes.NewReader(rawData)
-	scanner := bufio.NewScanner(reader)
-
-	for scanner.Scan() {
-		line := strings.Trim(scanner.Text(), " \t")
-		if line[0] == '.' { // label
-			line = strings.TrimSuffix(line, ":")
-			labelName := line[1:]
-			if _, ok := aContext.labels[labelName]; ok {
-				return fmt.Errorf("duplicate label definition for %q", labelName)
-			}
-			aContext.labels[labelName] = aContext.currLine
-		} else {
-			aContext.currLine++
-		}
+	// tokenize the raw file
+	if err := aContext.tokenizeAll(rawData); err != nil {
+		return err
 	}
 
-	fmt.Printf("%#v\n", aContext.labels)
-
-	_, _ = reader.Seek(0, io.SeekStart)
-	scanner = bufio.NewScanner(reader)
-
-	aContext.currLine = 0
-	for scanner.Scan() {
-		line := strings.Trim(scanner.Text(), " \t")
-		if line[0] == '.' {
-			continue
-		}
-		if assembled, err := aContext.ParseAssembly(line); err != nil {
-			return err
-		} else if err = binary.Write(outputFile, binary.LittleEndian, assembled); err != nil {
-			return err
-		}
-		aContext.currLine++
+	// construct statements (instruction + directive) from the generated tokens
+	if err := aContext.parseTokens(); err != nil {
+		return err
 	}
+
 	return nil
 }

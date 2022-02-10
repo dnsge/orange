@@ -54,6 +54,8 @@ const (
 	IType_B
 	IType_BI
 	IType_O
+	IType_CMP  // pseudo-type
+	IType_CMPI // pseudo-type
 )
 
 func GetInstructionType(opcode Opcode) InstructionType {
@@ -62,14 +64,12 @@ func GetInstructionType(opcode Opcode) InstructionType {
 		SUB,
 		AND,
 		OR,
-		XOR,
-		CMP:
+		XOR:
 		return IType_A
 	case ADDI,
 		SUBI,
 		LSL,
-		LSR,
-		CMPI:
+		LSR:
 		return IType_AI
 	case LDREG,
 		LDWORD,
