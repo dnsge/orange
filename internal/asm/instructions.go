@@ -1,13 +1,19 @@
 package asm
 
 import (
+	"fmt"
 	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/asm/lexer"
+	"github.com/dnsge/orange/internal/asm/parser"
 )
 
-func (a *assemblyContext) assembleInstruction(opStatement *statement) (arch.Instruction, error) {
-	opcodeToken := opStatement.body[0]
-	args := opStatement.body[1:]
+var (
+	ErrInvalidOpcode = fmt.Errorf("invalid opcode")
+)
+
+func (a *assemblyContext) assembleInstruction(opStatement *parser.Statement) (arch.Instruction, error) {
+	opcodeToken := opStatement.Body[0]
+	args := opStatement.Body[1:]
 
 	opcode := lexer.GetTokenOpOpcode(opcodeToken.Kind)
 	iType := arch.GetInstructionType(opcode)

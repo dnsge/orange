@@ -1,4 +1,4 @@
-package asm
+package parser
 
 import (
 	"errors"
@@ -8,24 +8,22 @@ import (
 	"io"
 )
 
-type statementKind uint8
+type StatementKind uint8
 
 const (
-	instructionStatement statementKind = iota
-	directiveStatement
+	InstructionStatement StatementKind = iota
+	DirectiveStatement
 )
 
 var (
-	ErrEmptyInstruction = fmt.Errorf("empty instruction")
-	ErrInvalidOpcode    = fmt.Errorf("invalid opcode")
-	ErrExpectedLineEnd  = fmt.Errorf("expected line end")
+	ErrExpectedLineEnd = fmt.Errorf("expected line end")
 )
 
-func (a *assemblyContext) tokenizeAll(data []byte) error {
+func TokenizeAll(data []byte) ([]*lexer.Token, error) {
 	var allTokens []*lexer.Token
 	t, err := lexer.New(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for {
@@ -35,26 +33,25 @@ func (a *assemblyContext) tokenizeAll(data []byte) error {
 		} else if err != nil {
 			var unconsumed *machines.UnconsumedInput
 			if errors.As(err, &unconsumed) {
-				return fmt.Errorf("invalid token at %d:%d", unconsumed.StartLine, unconsumed.StartColumn)
+				return nil, fmt.Errorf("invalid token at %d:%d", unconsumed.StartLine, unconsumed.StartColumn)
 
 			} else {
-				return err
+				return nil, err
 			}
 		}
 
 		allTokens = append(allTokens, tok)
 	}
 
-	a.tokens = allTokens
-	return nil
+	return allTokens, nil
 }
 
-type statement struct {
-	body []*lexer.Token
-	kind statementKind
+type Statement struct {
+	Body []*lexer.Token
+	Kind StatementKind
 }
 
-// parseTokens aggregates tokens from the input stream into statements.
+// ParseTokens aggregates tokens from the input stream into statements.
 //
 // We make the following classification of all complete statements
 // within Orange assembly:
@@ -74,15 +71,15 @@ type statement struct {
 // The LINE_END token is used to enforce assembly programs to have each instruction
 // on a separate line. This is not a limitation of the parsing, but a deliberate
 // design choice. Therefore, we must reach a LINE_END token before beginning parsing
-// of another statement.
-func (a *assemblyContext) parseTokens() error {
-	stream := lexer.NewTokenStream(a.tokens)
+// of another Statement.
+func ParseTokens(tokens []*lexer.Token) ([]*Statement, error) {
+	stream := lexer.NewTokenStream(tokens)
 
-	var statements []*statement
+	var statements []*Statement
 	waitingForLineEnd := false
 	for stream.HasNext() {
 		currentToken := stream.Pop()
-		var producedStatement *statement
+		var producedStatement *Statement
 		if currentToken.Kind == lexer.COMMENT {
 			// consume and ignore token
 			continue
@@ -91,29 +88,29 @@ func (a *assemblyContext) parseTokens() error {
 			// consume and ignore token
 			continue
 		} else if lexer.IsOp(currentToken.Kind) {
-			// make sure statement does not trail other statement
+			// make sure Statement does not trail other Statement
 			if waitingForLineEnd {
-				return ErrExpectedLineEnd
+				return nil, ErrExpectedLineEnd
 			}
 
 			if opStatement, err := parseOpTokens(currentToken, stream); err != nil {
-				return err
+				return nil, err
 			} else {
 				producedStatement = opStatement
 				waitingForLineEnd = true
 			}
 		} else if lexer.IsDirective(currentToken.Kind) {
-			// make sure statement does not trail other statement
+			// make sure Statement does not trail other Statement
 			if waitingForLineEnd {
-				return ErrExpectedLineEnd
+				return nil, ErrExpectedLineEnd
 			}
 
 			if dStatement, err := parseDirectiveTokens(currentToken, stream); err != nil {
-				return err
+				return nil, err
 			} else {
-				if dStatement.body[len(dStatement.body)-1].Kind == lexer.LINE_END {
+				if dStatement.Body[len(dStatement.Body)-1].Kind == lexer.LINE_END {
 					// The directive processed the new line, don't update waitingForLineEnd
-					dStatement.body = dStatement.body[:len(dStatement.body)-1] // remove last token
+					dStatement.Body = dStatement.Body[:len(dStatement.Body)-1] // remove last token
 				} else {
 					waitingForLineEnd = true
 				}
@@ -121,25 +118,24 @@ func (a *assemblyContext) parseTokens() error {
 				producedStatement = dStatement
 			}
 		} else {
-			return fmt.Errorf("unexpected token: %s", lexer.DescribeToken(currentToken))
+			return nil, fmt.Errorf("unexpected token: %s", lexer.DescribeToken(currentToken))
 		}
 
 		translated, err := translateStatement(producedStatement)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		for i := range translated {
 			statements = append(statements, translated[i])
-			fmt.Printf("%s\n", translated[i].body[0].Value)
+			fmt.Printf("%s\n", translated[i].Body[0].Value)
 		}
 	}
 
-	a.statements = statements
-	return nil
+	return statements, nil
 }
 
-func parseOpTokens(op *lexer.Token, stream *lexer.TokenStream) (*statement, error) {
+func parseOpTokens(op *lexer.Token, stream *lexer.TokenStream) (*Statement, error) {
 	exp, err := getOpcodeStatementExpectation(op.Kind)
 	if err != nil {
 		return nil, err
@@ -150,16 +146,16 @@ func parseOpTokens(op *lexer.Token, stream *lexer.TokenStream) (*statement, erro
 		return nil, err
 	}
 
-	return &statement{
-		body: statementBody,
-		kind: instructionStatement,
+	return &Statement{
+		Body: statementBody,
+		Kind: InstructionStatement,
 	}, nil
 }
 
-func parseDirectiveTokens(directive *lexer.Token, stream *lexer.TokenStream) (*statement, error) {
+func parseDirectiveTokens(directive *lexer.Token, stream *lexer.TokenStream) (*Statement, error) {
 	exp, ok := directiveKindExpectationMap[directive.Kind]
 	if !ok {
-		return nil, fmt.Errorf("unexpected directive kind %v", lexer.DescribeTokenKind(directive.Kind))
+		return nil, fmt.Errorf("unexpected directive Kind %v", lexer.DescribeTokenKind(directive.Kind))
 	}
 
 	statementBody, err := handlePrefixedExtraction(stream, directive, exp)
@@ -167,9 +163,9 @@ func parseDirectiveTokens(directive *lexer.Token, stream *lexer.TokenStream) (*s
 		return nil, err
 	}
 
-	return &statement{
-		body: statementBody,
-		kind: directiveStatement,
+	return &Statement{
+		Body: statementBody,
+		Kind: DirectiveStatement,
 	}, nil
 }
 

@@ -1,4 +1,4 @@
-package asm
+package parser
 
 import (
 	"github.com/dnsge/orange/internal/asm/lexer"

@@ -1,4 +1,4 @@
-package asm
+package parser
 
 import "github.com/dnsge/orange/internal/asm/lexer"
 
@@ -13,40 +13,40 @@ var pseudoStatements = []pseudoStatement{
 	},
 }
 
-func translateStatement(opStatement *statement) ([]*statement, error) {
+func translateStatement(opStatement *Statement) ([]*Statement, error) {
 	for i := range pseudoStatements {
 		if pseudoStatements[i].Matches(opStatement) {
 			return pseudoStatements[i].Convert(opStatement)
 		}
 	}
-	return []*statement{opStatement}, nil
+	return []*Statement{opStatement}, nil
 }
 
-func translateCMP(cmpStatement *statement) ([]*statement, error) {
+func translateCMP(cmpStatement *Statement) ([]*Statement, error) {
 	newBody := []*lexer.Token{
-		remapToken(cmpStatement.body[0], lexer.SUB, "SUB"),
+		remapToken(cmpStatement.Body[0], lexer.SUB, "SUB"),
 		blankToken(lexer.REGISTER, "r0"),
-		cmpStatement.body[1],
-		cmpStatement.body[2],
+		cmpStatement.Body[1],
+		cmpStatement.Body[2],
 	}
 
-	return []*statement{{
-		body: newBody,
-		kind: instructionStatement,
+	return []*Statement{{
+		Body: newBody,
+		Kind: InstructionStatement,
 	}}, nil
 }
 
-func translateCMPI(cmpiStatement *statement) ([]*statement, error) {
+func translateCMPI(cmpiStatement *Statement) ([]*Statement, error) {
 	newBody := []*lexer.Token{
-		remapToken(cmpiStatement.body[0], lexer.SUB, "SUBI"),
+		remapToken(cmpiStatement.Body[0], lexer.SUB, "SUBI"),
 		blankToken(lexer.REGISTER, "r0"),
-		cmpiStatement.body[1],
-		cmpiStatement.body[2],
+		cmpiStatement.Body[1],
+		cmpiStatement.Body[2],
 	}
 
-	return []*statement{{
-		body: newBody,
-		kind: instructionStatement,
+	return []*Statement{{
+		Body: newBody,
+		Kind: InstructionStatement,
 	}}, nil
 }
 
