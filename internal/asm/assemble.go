@@ -3,6 +3,7 @@ package asm
 import (
 	"fmt"
 	"github.com/dnsge/orange/internal/arch"
+	"github.com/dnsge/orange/internal/asm/lexer"
 	"math"
 	"strconv"
 )
@@ -11,7 +12,7 @@ var (
 	ErrInvalidArgumentCount = fmt.Errorf("invalid argument count")
 )
 
-func assembleATypeInstruction(opcode arch.Opcode, args []string) (arch.Instruction, error) {
+func assembleATypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	var instruction arch.ATypeInstruction
 	if opcode == arch.CMP {
 		if len(args) != 2 {
@@ -51,7 +52,7 @@ func assembleATypeInstruction(opcode arch.Opcode, args []string) (arch.Instructi
 	return arch.EncodeATypeInstruction(instruction), nil
 }
 
-func assembleATypeImmInstruction(opcode arch.Opcode, args []string) (arch.Instruction, error) {
+func assembleATypeImmInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	var instruction arch.ATypeImmInstruction
 	if opcode == arch.CMPI {
 		if len(args) != 2 {
@@ -69,7 +70,7 @@ func assembleATypeImmInstruction(opcode arch.Opcode, args []string) (arch.Instru
 		}
 
 		instruction = arch.ATypeImmInstruction{
-			Opcode:    arch.SUB,
+			Opcode:    arch.SUBI,
 			RegDest:   0,
 			RegA:      regA,
 			Immediate: imm,
@@ -100,7 +101,7 @@ func assembleATypeImmInstruction(opcode arch.Opcode, args []string) (arch.Instru
 	return arch.EncodeATypeImmInstruction(instruction), nil
 }
 
-func assembleMTypeInstruction(opcode arch.Opcode, args []string) (arch.Instruction, error) {
+func assembleMTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 3 {
 		return 0, ErrInvalidArgumentCount
 	}
@@ -124,7 +125,7 @@ func assembleMTypeInstruction(opcode arch.Opcode, args []string) (arch.Instructi
 	return arch.EncodeMTypeInstruction(instruction), nil
 }
 
-func assembleETypeInstruction(opcode arch.Opcode, args []string) (arch.Instruction, error) {
+func assembleETypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 2 {
 		return 0, ErrInvalidArgumentCount
 	}
@@ -147,7 +148,7 @@ func assembleETypeInstruction(opcode arch.Opcode, args []string) (arch.Instructi
 	return arch.EncodeETypeInstruction(instruction), nil
 }
 
-func assembleBTypeInstruction(opcode arch.Opcode, args []string) (arch.Instruction, error) {
+func assembleBTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 1 {
 		return 0, ErrInvalidArgumentCount
 	}
@@ -164,7 +165,7 @@ func assembleBTypeInstruction(opcode arch.Opcode, args []string) (arch.Instructi
 	return arch.EncodeBTypeInstruction(instruction), nil
 }
 
-func assembleBTypeImmInstruction(opcode arch.Opcode, args []string, ctx *assemblyContext) (arch.Instruction, error) {
+func assembleBTypeImmInstruction(opcode arch.Opcode, args []*lexer.Token, ctx *assemblyContext) (arch.Instruction, error) {
 	if len(args) != 1 {
 		return 0, ErrInvalidArgumentCount
 	}
@@ -181,7 +182,7 @@ func assembleBTypeImmInstruction(opcode arch.Opcode, args []string, ctx *assembl
 	return arch.EncodeBTypeImmInstruction(instruction), nil
 }
 
-func assembleOTypeInstruction(opcode arch.Opcode, args []string) (arch.Instruction, error) {
+func assembleOTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 0 {
 		return 0, ErrInvalidArgumentCount
 	}
@@ -192,12 +193,9 @@ func assembleOTypeInstruction(opcode arch.Opcode, args []string) (arch.Instructi
 	return arch.EncodeOTypeInstruction(instruction), nil
 }
 
-func parseRegister(registerName string) (arch.RegisterValue, error) {
-	if registerName[0] == 'r' || registerName[0] == 'R' {
-		registerName = registerName[1:]
-	}
-
-	val, err := strconv.ParseUint(registerName, 10, 8)
+func parseRegister(registerName *lexer.Token) (arch.RegisterValue, error) {
+	regNumberStr := registerName.Value[1:]
+	val, err := strconv.ParseUint(regNumberStr, 10, 8)
 	if err != nil {
 		return 0, err
 	}
@@ -205,7 +203,7 @@ func parseRegister(registerName string) (arch.RegisterValue, error) {
 	return uint8(val), nil
 }
 
-func parseRegisters(registers []string) ([]arch.RegisterValue, error) {
+func parseRegisters(registers []*lexer.Token) ([]arch.RegisterValue, error) {
 	res := make([]arch.RegisterValue, len(registers))
 	for i := range registers {
 		parsed, err := parseRegister(registers[i])
@@ -217,92 +215,65 @@ func parseRegisters(registers []string) ([]arch.RegisterValue, error) {
 	return res, nil
 }
 
-func parseUnsignedImmediate(imm string) (uint16, error) {
-	if len(imm) < 2 {
-		return 0, fmt.Errorf("invalid immediate %q", imm)
+func parseUnsignedImmediate(immTok *lexer.Token) (uint16, error) {
+	imm := immTok.Value[1:]
+	var base int
+
+	switch immTok.Kind {
+	case lexer.BASE_10_IMM:
+		base = 10
+	case lexer.BASE_16_IMM:
+		base = 16
+	case lexer.BASE_8_IMM:
+		base = 8
+	default:
+		return 0, fmt.Errorf("invalid immediate type %s", lexer.DescribeTokenKind(immTok.Kind))
 	}
 
-	var val uint16
-	kind := imm[0]
-	rest := imm[1:]
-
-	if kind == '#' { // decimal
-		res, err := strconv.ParseUint(rest, 10, 16)
-		if err != nil {
-			return 0, err
-		}
-		val = uint16(res)
-	} else if kind == 'x' { // hexadecimal
-		res, err := strconv.ParseUint(rest, 16, 16)
-		if err != nil {
-			return 0, err
-		}
-		val = uint16(res)
-	} else if kind == 'o' { // octal
-		res, err := strconv.ParseUint(rest, 8, 16)
-		if err != nil {
-			return 0, err
-		}
-		val = uint16(res)
-	} else {
-		return 0, fmt.Errorf("invalid immediate type specifier %q", kind)
+	res, err := strconv.ParseUint(imm, base, 16)
+	if err != nil {
+		return 0, err
 	}
-
-	return val, nil
+	return uint16(res), nil
 }
 
-func parseSignedImmediate(imm string) (int16, error) {
-	if len(imm) < 2 {
-		return 0, fmt.Errorf("invalid immediate %q", imm)
+func parseSignedImmediate(immTok *lexer.Token) (int16, error) {
+	imm := immTok.Value[1:]
+	var base int
+
+	switch immTok.Kind {
+	case lexer.BASE_10_IMM:
+		base = 10
+	case lexer.BASE_16_IMM:
+		base = 16
+	case lexer.BASE_8_IMM:
+		base = 8
+	default:
+		return 0, fmt.Errorf("invalid immediate type %s", lexer.DescribeTokenKind(immTok.Kind))
 	}
 
-	var val int16
-	kind := imm[0]
-	rest := imm[1:]
-
-	if kind == '#' { // decimal
-		res, err := strconv.ParseInt(rest, 10, 16)
-		if err != nil {
-			return 0, err
-		}
-		val = int16(res)
-	} else if kind == 'x' { // hexadecimal
-		res, err := strconv.ParseInt(rest, 16, 16)
-		if err != nil {
-			return 0, err
-		}
-		val = int16(res)
-	} else if kind == 'o' { // octal
-		res, err := strconv.ParseInt(rest, 8, 16)
-		if err != nil {
-			return 0, err
-		}
-		val = int16(res)
-	} else {
-		return 0, fmt.Errorf("invalid immediate type specifier %q", kind)
+	res, err := strconv.ParseInt(imm, base, 16)
+	if err != nil {
+		return 0, err
 	}
-
-	return val, nil
+	return int16(res), nil
 }
 
-func parseOffsetOrLabel(text string, ctx *assemblyContext) (int16, error) {
-	if len(text) < 2 {
-		return 0, fmt.Errorf("invalid immediate %q", text)
-	}
-
-	if text[0] == '.' {
-		labelTarget, ok := ctx.labels[text[1:]]
+func parseOffsetOrLabel(tok *lexer.Token, ctx *assemblyContext) (int16, error) {
+	if tok.Kind == lexer.LABEL {
+		labelName := tok.Value[1:]
+		labelTarget, ok := ctx.labels[labelName]
 		if !ok {
-			return 0, fmt.Errorf("undefined label %q", text[1:])
+			return 0, fmt.Errorf("undefined label %q at %d:%d", labelName, tok.Row, tok.Column)
 		}
 
 		instructionOffset := int32(labelTarget - ctx.currLine)
 		if instructionOffset > math.MaxInt16 || instructionOffset < math.MinInt16 {
-			return 0, fmt.Errorf("cannot branch to relative with offset %d", instructionOffset)
+			return 0, fmt.Errorf("cannot branch to relative with offset %d (computed at %d:%d)", instructionOffset, tok.Row, tok.Column)
 		}
 
 		return int16(instructionOffset), nil
 	} else {
-		return parseSignedImmediate(text)
+		return parseSignedImmediate(tok)
 	}
 }

@@ -10,7 +10,7 @@
 .incr:
     LSL r4, r4, #1
     LSL r2, r2, #1
-    ADDI r10, r10, #1
+    ADDI r10, r10, #1 ; this is a comment
     CMP r10, r11
     B.NEQ .loop
     HALT

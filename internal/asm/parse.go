@@ -1,12 +1,11 @@
 package asm
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
-	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/asm/lexer"
+	"github.com/timtadh/lexmachine/machines"
 	"io"
-	"strings"
 )
 
 type statementKind uint8
@@ -34,7 +33,13 @@ func (a *assemblyContext) tokenizeAll(data []byte) error {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			return err
+			var unconsumed *machines.UnconsumedInput
+			if errors.As(err, &unconsumed) {
+				return fmt.Errorf("invalid token at %d:%d", unconsumed.StartLine, unconsumed.StartColumn)
+
+			} else {
+				return err
+			}
 		}
 
 		allTokens = append(allTokens, tok)
@@ -77,6 +82,7 @@ func (a *assemblyContext) parseTokens() error {
 	waitingForLineEnd := false
 	for stream.HasNext() {
 		currentToken := stream.Pop()
+		var producedStatement *statement
 		if currentToken.Kind == lexer.COMMENT {
 			// consume and ignore token
 			continue
@@ -93,7 +99,7 @@ func (a *assemblyContext) parseTokens() error {
 			if opStatement, err := parseOpTokens(currentToken, stream); err != nil {
 				return err
 			} else {
-				statements = append(statements, opStatement)
+				producedStatement = opStatement
 				waitingForLineEnd = true
 			}
 		} else if lexer.IsDirective(currentToken.Kind) {
@@ -112,21 +118,31 @@ func (a *assemblyContext) parseTokens() error {
 					waitingForLineEnd = true
 				}
 
-				statements = append(statements, dStatement)
+				producedStatement = dStatement
 			}
 		} else {
 			return fmt.Errorf("unexpected token: %s", lexer.DescribeToken(currentToken))
 		}
+
+		translated, err := translateStatement(producedStatement)
+		if err != nil {
+			return err
+		}
+
+		for i := range translated {
+			statements = append(statements, translated[i])
+			fmt.Printf("%s\n", translated[i].body[0].Value)
+		}
 	}
 
+	a.statements = statements
 	return nil
 }
 
 func parseOpTokens(op *lexer.Token, stream *lexer.TokenStream) (*statement, error) {
-	iType := lexer.GetTokenOpInstructionType(op.Kind)
-	exp, ok := opKindExpectationMap[iType]
-	if !ok {
-		return nil, fmt.Errorf("unexpected instruction kind %v", iType)
+	exp, err := getOpcodeStatementExpectation(op.Kind)
+	if err != nil {
+		return nil, err
 	}
 
 	statementBody, err := handlePrefixedExtraction(stream, op, exp)
@@ -164,136 +180,5 @@ func handlePrefixedExtraction(stream *lexer.TokenStream, prefix *lexer.Token, ex
 		return nil, err
 	} else {
 		return body, nil
-	}
-}
-
-func (a *assemblyContext) processLabels(scanner *bufio.Scanner) error {
-	for scanner.Scan() {
-		line := strings.Trim(scanner.Text(), " \t")
-		if line[0] == '.' { // label
-			line = strings.TrimSuffix(line, ":")
-			labelName := line[1:]
-			if _, ok := a.labels[labelName]; ok {
-				return fmt.Errorf("duplicate label definition for %q", labelName)
-			}
-			a.labels[labelName] = a.currLine
-		} else {
-			a.currLine++
-		}
-	}
-
-	return nil
-}
-
-func (a *assemblyContext) parseAssembly(line string) (arch.Instruction, error) {
-	if line == "" {
-		return 0, ErrEmptyInstruction
-	}
-
-	line = strings.ReplaceAll(line, ",", "")
-	tokens := strings.Split(line, " ")
-
-	opcodeText := tokens[0]
-	opcode, err := parseOpcodeText(opcodeText)
-	if err != nil {
-		return 0, err
-	}
-
-	var args []string
-	if len(tokens) == 1 {
-		args = []string{}
-	} else {
-		args = tokens[1:]
-	}
-
-	iType := arch.GetInstructionType(opcode)
-	switch iType {
-	case arch.IType_A:
-		return assembleATypeInstruction(opcode, args)
-	case arch.IType_AI:
-		return assembleATypeImmInstruction(opcode, args)
-	case arch.IType_M:
-		return assembleMTypeInstruction(opcode, args)
-	case arch.IType_E:
-		return assembleETypeInstruction(opcode, args)
-	case arch.IType_BI:
-		return assembleBTypeImmInstruction(opcode, args, a)
-	case arch.IType_B:
-		return assembleBTypeInstruction(opcode, args)
-	case arch.IType_O:
-		return assembleOTypeInstruction(opcode, args)
-	default:
-		return 0, ErrInvalidOpcode
-	}
-}
-
-func parseOpcodeText(text string) (arch.Opcode, error) {
-	switch text {
-	case "ADD":
-		return arch.ADD, nil
-	case "ADDI":
-		return arch.ADDI, nil
-	case "SUB":
-		return arch.SUB, nil
-	case "SUBI":
-		return arch.SUBI, nil
-	case "AND":
-		return arch.AND, nil
-	case "OR":
-		return arch.OR, nil
-	case "XOR":
-		return arch.XOR, nil
-	case "LSL":
-		return arch.LSL, nil
-	case "LSR":
-		return arch.LSR, nil
-	case "CMP":
-		return arch.CMP, nil
-	case "CMPI":
-		return arch.CMPI, nil
-	case "LDREG":
-		return arch.LDREG, nil
-	case "LDWORD":
-		return arch.LDWORD, nil
-	case "LDHWRD":
-		return arch.LDHWRD, nil
-	case "LDBYTE":
-		return arch.LDBYTE, nil
-	case "STREG":
-		return arch.STREG, nil
-	case "STWORD":
-		return arch.STWORD, nil
-	case "STHWRD":
-		return arch.STHWRD, nil
-	case "STBYTE":
-		return arch.STBYTE, nil
-	case "MOVZ":
-		return arch.MOVZ, nil
-	case "MOVK":
-		return arch.MOVK, nil
-	case "B":
-		return arch.B, nil
-	case "BREG":
-		return arch.BREG, nil
-	case "B.EQ":
-		return arch.B_EQ, nil
-	case "B.NEQ":
-		return arch.B_NEQ, nil
-	case "B.LT":
-		return arch.B_LT, nil
-	case "B.LE":
-		return arch.B_LE, nil
-	case "B.GT":
-		return arch.B_GT, nil
-	case "B.GE":
-		return arch.B_GE, nil
-	case "BL":
-		return arch.BL, nil
-	case "HALT":
-		return arch.HALT, nil
-	case "NOOP":
-		return arch.NOOP, nil
-	default:
-		return arch.None, ErrInvalidOpcode
 	}
 }

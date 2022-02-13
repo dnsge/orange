@@ -54,8 +54,6 @@ const (
 	IType_B
 	IType_BI
 	IType_O
-	IType_CMP  // pseudo-type
-	IType_CMPI // pseudo-type
 )
 
 func GetInstructionType(opcode Opcode) InstructionType {

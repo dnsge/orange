@@ -1,7 +1,7 @@
 package asm
 
 import (
-	"github.com/dnsge/orange/internal/arch"
+	"fmt"
 	"github.com/dnsge/orange/internal/asm/lexer"
 )
 
@@ -58,16 +58,51 @@ var (
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
 	)
-
-	opKindExpectationMap = map[arch.InstructionType]*lexer.Expectation{
-		arch.IType_A:    aType_expectation,
-		arch.IType_AI:   aiType_expectation,
-		arch.IType_M:    mType_expectation,
-		arch.IType_E:    eType_expectation,
-		arch.IType_B:    bType_expectation,
-		arch.IType_BI:   biType_expectation,
-		arch.IType_O:    oType_expectation,
-		arch.IType_CMP:  cmpType_expectation,
-		arch.IType_CMPI: cmpiType_expectation,
-	}
 )
+
+func getOpcodeStatementExpectation(opKind lexer.TokenKind) (*lexer.Expectation, error) {
+	switch opKind {
+	case lexer.ADD,
+		lexer.SUB,
+		lexer.AND,
+		lexer.OR,
+		lexer.XOR:
+		return aType_expectation, nil
+	case lexer.ADDI,
+		lexer.SUBI,
+		lexer.LSL,
+		lexer.LSR:
+		return aiType_expectation, nil
+	case lexer.LDREG,
+		lexer.LDWORD,
+		lexer.LDHWRD,
+		lexer.LDBYTE,
+		lexer.STREG,
+		lexer.STWORD,
+		lexer.STHWRD,
+		lexer.STBYTE:
+		return mType_expectation, nil
+	case lexer.MOVZ,
+		lexer.MOVK:
+		return eType_expectation, nil
+	case lexer.B,
+		lexer.B_EQ,
+		lexer.B_NEQ,
+		lexer.B_LT,
+		lexer.B_LE,
+		lexer.B_GT,
+		lexer.B_GE:
+		return biType_expectation, nil
+	case lexer.BREG:
+		return bType_expectation, nil
+	case lexer.HALT,
+		lexer.NOOP:
+		return oType_expectation, nil
+	case lexer.CMP:
+		return cmpType_expectation, nil
+	case lexer.CMPI:
+		return cmpiType_expectation, nil
+	default:
+		return nil, fmt.Errorf("getOpcodeStatementExpectation: invalid opcode")
+	}
+}

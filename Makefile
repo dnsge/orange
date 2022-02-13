@@ -1,4 +1,4 @@
-.PHONY: asm vm all
+.PHONY: asm vm all mult
 
 all: asm vm
 
@@ -7,3 +7,7 @@ asm:
 
 vm:
 	go build -o ./out/orangevm ./cmd/orangevm
+
+mult: all
+	./out/orangeasm ./programs/multiplication.orange ./mult.out
+	./out/orangevm ./mult.out

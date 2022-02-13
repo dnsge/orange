@@ -119,50 +119,73 @@ func IsOp(kind TokenKind) bool {
 	return kind > _opStart && kind < _opEnd
 }
 
-func GetTokenOpInstructionType(opKind TokenKind) arch.InstructionType {
+func GetTokenOpOpcode(opKind TokenKind) arch.Opcode {
 	switch opKind {
-	case ADD,
-		SUB,
-		AND,
-		OR,
-		XOR:
-		return arch.IType_A
-	case ADDI,
-		SUBI,
-		LSL,
-		LSR:
-		return arch.IType_AI
-	case LDREG,
-		LDWORD,
-		LDHWRD,
-		LDBYTE,
-		STREG,
-		STWORD,
-		STHWRD,
-		STBYTE:
-		return arch.IType_M
-	case MOVZ,
-		MOVK:
-		return arch.IType_E
-	case B,
-		B_EQ,
-		B_NEQ,
-		B_LT,
-		B_LE,
-		B_GT,
-		B_GE:
-		return arch.IType_BI
-	case BREG:
-		return arch.IType_B
-	case HALT,
-		NOOP:
-		return arch.IType_O
+	case ADD:
+		return arch.ADD
+	case ADDI:
+		return arch.ADDI
+	case SUB:
+		return arch.SUB
+	case SUBI:
+		return arch.SUBI
+	case AND:
+		return arch.AND
+	case OR:
+		return arch.OR
+	case XOR:
+		return arch.XOR
+	case LSL:
+		return arch.LSL
+	case LSR:
+		return arch.LSR
 	case CMP:
-		return arch.IType_CMP // pseudo-type
+		return arch.CMP
 	case CMPI:
-		return arch.IType_CMPI // pseudo-type
-
+		return arch.CMPI
+	case LDREG:
+		return arch.LDREG
+	case LDWORD:
+		return arch.LDWORD
+	case LDHWRD:
+		return arch.LDHWRD
+	case LDBYTE:
+		return arch.LDBYTE
+	case STREG:
+		return arch.STREG
+	case STWORD:
+		return arch.STWORD
+	case STHWRD:
+		return arch.STHWRD
+	case STBYTE:
+		return arch.STBYTE
+	case MOVZ:
+		return arch.MOVZ
+	case MOVK:
+		return arch.MOVK
+	case B:
+		return arch.B
+	case BREG:
+		return arch.BREG
+	case B_EQ:
+		return arch.B_EQ
+	case B_NEQ:
+		return arch.B_NEQ
+	case B_LT:
+		return arch.B_LT
+	case B_LE:
+		return arch.B_LE
+	case B_GT:
+		return arch.B_GT
+	case B_GE:
+		return arch.B_GE
+	case BL:
+		return arch.BL
+	case HALT:
+		return arch.HALT
+	case NOOP:
+		return arch.NOOP
 	default:
-		return arch.IType_Invalid
+		panic("lexer.GetTokenOpOpcode: invalid opcode type")
 	}
 }
