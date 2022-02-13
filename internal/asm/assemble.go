@@ -13,89 +13,45 @@ var (
 )
 
 func assembleATypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
-	var instruction arch.ATypeInstruction
-	if opcode == arch.CMP {
-		if len(args) != 2 {
-			return 0, ErrInvalidArgumentCount
-		}
+	if len(args) != 3 {
+		return 0, ErrInvalidArgumentCount
+	}
 
-		parsedRegs, err := parseRegisters(args)
-		if err != nil {
-			return 0, err
-		}
+	parsedRegs, err := parseRegisters(args)
+	if err != nil {
+		return 0, err
+	}
 
-		// CMP is a pseudo-instruction for SUB
-		instruction = arch.ATypeInstruction{
-			Opcode:  arch.SUB,
-			RegDest: 0,
-			RegA:    parsedRegs[0],
-			RegB:    parsedRegs[1],
-		}
-	} else {
-		if len(args) != 3 {
-			return 0, ErrInvalidArgumentCount
-		}
-
-		parsedRegs, err := parseRegisters(args)
-		if err != nil {
-			return 0, err
-		}
-
-		instruction = arch.ATypeInstruction{
-			Opcode:  opcode,
-			RegDest: parsedRegs[0],
-			RegA:    parsedRegs[1],
-			RegB:    parsedRegs[2],
-		}
+	instruction := arch.ATypeInstruction{
+		Opcode:  opcode,
+		RegDest: parsedRegs[0],
+		RegA:    parsedRegs[1],
+		RegB:    parsedRegs[2],
 	}
 
 	return arch.EncodeATypeInstruction(instruction), nil
 }
 
 func assembleATypeImmInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
-	var instruction arch.ATypeImmInstruction
-	if opcode == arch.CMPI {
-		if len(args) != 2 {
-			return 0, ErrInvalidArgumentCount
-		}
+	if len(args) != 3 {
+		return 0, ErrInvalidArgumentCount
+	}
 
-		regA, err := parseRegister(args[0])
-		if err != nil {
-			return 0, err
-		}
+	parsedRegs, err := parseRegisters(args[0:2])
+	if err != nil {
+		return 0, err
+	}
 
-		imm, err := parseUnsignedImmediate(args[1])
-		if err != nil {
-			return 0, err
-		}
+	imm, err := parseUnsignedImmediate(args[2])
+	if err != nil {
+		return 0, err
+	}
 
-		instruction = arch.ATypeImmInstruction{
-			Opcode:    arch.SUBI,
-			RegDest:   0,
-			RegA:      regA,
-			Immediate: imm,
-		}
-	} else {
-		if len(args) != 3 {
-			return 0, ErrInvalidArgumentCount
-		}
-
-		parsedRegs, err := parseRegisters(args[0:2])
-		if err != nil {
-			return 0, err
-		}
-
-		imm, err := parseUnsignedImmediate(args[2])
-		if err != nil {
-			return 0, err
-		}
-
-		instruction = arch.ATypeImmInstruction{
-			Opcode:    opcode,
-			RegDest:   parsedRegs[0],
-			RegA:      parsedRegs[1],
-			Immediate: imm,
-		}
+	instruction := arch.ATypeImmInstruction{
+		Opcode:    opcode,
+		RegDest:   parsedRegs[0],
+		RegA:      parsedRegs[1],
+		Immediate: imm,
 	}
 
 	return arch.EncodeATypeImmInstruction(instruction), nil
