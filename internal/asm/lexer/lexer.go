@@ -20,6 +20,7 @@ func tokenOfKind(kind TokenKind) lexmachine.Action {
 var sharedLexer *lexmachine.Lexer = nil
 
 func init() {
+	// Initialize our assembly lexer with patterns, storing it in sharedLexer
 	lexer := lexmachine.NewLexer()
 	lexer.Add([]byte(`r[0-9]`), tokenOfKind(REGISTER))
 	lexer.Add([]byte(`r1[0-5]`), tokenOfKind(REGISTER))

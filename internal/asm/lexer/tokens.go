@@ -61,6 +61,7 @@ const (
 	_opEnd
 )
 
+// slice of literal token patterns for lexer
 var opTokenPatterns = map[TokenKind][]byte{
 	ADD:  []byte(`ADD`),
 	ADDI: []byte(`ADDI`),
@@ -100,6 +101,7 @@ var opTokenPatterns = map[TokenKind][]byte{
 	NOOP: []byte(`NOOP`),
 }
 
+// Token describes a lexeme within an input
 type Token struct {
 	Kind   TokenKind
 	Value  string
@@ -107,18 +109,22 @@ type Token struct {
 	Column int
 }
 
+// IsImmediate returns whether the TokenKind represents an immediate value
 func IsImmediate(kind TokenKind) bool {
 	return kind == BASE_10_IMM || kind == BASE_16_IMM || kind == BASE_8_IMM
 }
 
+// IsDirective returns whether the TokenKind represents a directive
 func IsDirective(kind TokenKind) bool {
 	return kind > _directiveStart && kind < _directiveEnd
 }
 
+// IsOp returns whether the TokenKind represents an opcode
 func IsOp(kind TokenKind) bool {
 	return kind > _opStart && kind < _opEnd
 }
 
+// GetTokenOpOpcode returns the arch.Opcode for the given TokenKind
 func GetTokenOpOpcode(opKind TokenKind) arch.Opcode {
 	switch opKind {
 	case ADD:

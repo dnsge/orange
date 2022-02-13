@@ -19,6 +19,7 @@ var (
 	ErrExpectedLineEnd = fmt.Errorf("expected line end")
 )
 
+// TokenizeAll converts the given data into a slice of Tokens
 func TokenizeAll(data []byte) ([]*lexer.Token, error) {
 	var allTokens []*lexer.Token
 	t, err := lexer.New(data)
@@ -46,6 +47,11 @@ func TokenizeAll(data []byte) ([]*lexer.Token, error) {
 	return allTokens, nil
 }
 
+// Statement is the most basic element of an Orange assembly program.
+//
+// It can describe:
+//  1. An instruction (e.g. ADD r3, r2, r1)
+//  2. A directive (e.g. a label declaration)
 type Statement struct {
 	Body []*lexer.Token
 	Kind StatementKind
@@ -135,6 +141,7 @@ func ParseTokens(tokens []*lexer.Token) ([]*Statement, error) {
 	return statements, nil
 }
 
+// parseOpTokens attempts to parse an instruction statement from the TokenStream
 func parseOpTokens(op *lexer.Token, stream *lexer.TokenStream) (*Statement, error) {
 	exp, err := getOpcodeStatementExpectation(op.Kind)
 	if err != nil {
@@ -152,6 +159,7 @@ func parseOpTokens(op *lexer.Token, stream *lexer.TokenStream) (*Statement, erro
 	}, nil
 }
 
+// parseDirectiveTokens attempts to parse a directive statement from the TokenStream
 func parseDirectiveTokens(directive *lexer.Token, stream *lexer.TokenStream) (*Statement, error) {
 	exp, ok := directiveKindExpectationMap[directive.Kind]
 	if !ok {
@@ -169,7 +177,10 @@ func parseDirectiveTokens(directive *lexer.Token, stream *lexer.TokenStream) (*S
 	}, nil
 }
 
+// handlePrefixedExtraction returns a slice of Tokens after extracting the
+// expected tokens from the TokenStream
 func handlePrefixedExtraction(stream *lexer.TokenStream, prefix *lexer.Token, expectation *lexer.Expectation) ([]*lexer.Token, error) {
+	// reserve space for prefix and expectations
 	body := make([]*lexer.Token, expectation.ExtractionCount()+1)
 	body[0] = prefix
 	if err := lexer.ExtractExpectedStructure(stream, body, expectation, 1); err != nil {

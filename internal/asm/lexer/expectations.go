@@ -2,6 +2,7 @@ package lexer
 
 import "fmt"
 
+// Expect returns an ExpectationEntry that captures an expected TokenKind
 func Expect(kind TokenKind) ExpectationEntry {
 	return &singleExpectationEntry{
 		kind: kind,
@@ -9,6 +10,7 @@ func Expect(kind TokenKind) ExpectationEntry {
 	}
 }
 
+// ExpectIgnore returns an ExpectationEntry that expects but ignores a TokenKind
 func ExpectIgnore(kind TokenKind) ExpectationEntry {
 	return &singleExpectationEntry{
 		kind: kind,
@@ -16,6 +18,7 @@ func ExpectIgnore(kind TokenKind) ExpectationEntry {
 	}
 }
 
+// ExpectAny returns an ExpectationEntry that captures one of any given TokenKind
 func ExpectAny(kinds ...TokenKind) ExpectationEntry {
 	return &multipleExpectationEntry{
 		kinds: kinds,
@@ -23,6 +26,7 @@ func ExpectAny(kinds ...TokenKind) ExpectationEntry {
 	}
 }
 
+// ExpectAnyIgnore returns an ExpectationEntry that expects but ignores one of any given TokenKind
 func ExpectAnyIgnore(kinds ...TokenKind) ExpectationEntry {
 	return &multipleExpectationEntry{
 		kinds: kinds,
@@ -81,12 +85,16 @@ func (m *multipleExpectationEntry) Describe() string {
 	return res
 }
 
+// ExpectationEntry describes a possible token expectation that can be matched
+// within stream of many Tokens.
 type ExpectationEntry interface {
 	Matches(kind TokenKind) bool
 	Keep() bool
 	Describe() string
 }
 
+// Expectation is an aggregate of ExpectationEntries that matches multiple
+// expected Tokens.
 type Expectation struct {
 	keepCount int
 	entries   []ExpectationEntry
@@ -106,10 +114,16 @@ func NewExpectation(entries ...ExpectationEntry) *Expectation {
 	}
 }
 
+// ExtractionCount returns the number of captured (e.g. not ignored) Tokens
+// that its pattern describes
 func (e *Expectation) ExtractionCount() int {
 	return e.keepCount
 }
 
+// ExtractExpectedStructure attempts to extract a subset of Tokens from a
+// TokenStream, storing the results in dest. dest must have a size large
+// enough to store all the expected tokens. offset is the index offset for
+// Tokens being stored in dest.
 func ExtractExpectedStructure(stream *TokenStream, dest []*Token, exp *Expectation, offset int) error {
 	i := 0
 	for _, e := range exp.entries {

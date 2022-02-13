@@ -10,6 +10,7 @@ type Tokenizer struct {
 	input   []byte
 }
 
+// New returns a Tokenizer over a byte slice
 func New(input []byte) (*Tokenizer, error) {
 	scanner, err := sharedLexer.Scanner(input)
 	if err != nil {
