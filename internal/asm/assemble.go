@@ -58,16 +58,23 @@ func assembleATypeImmInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.
 }
 
 func assembleMTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
-	if len(args) != 3 {
+	var imm int16
+	if len(args) == 2 {
+		// Handle special no offset case
+		// For example, LDREG r3, [r2]
+		// aka de-referencing a pointer
+		imm = 0
+	} else if len(args) == 3 {
+		pImm, err := parseSignedImmediate(args[2])
+		if err != nil {
+			return 0, err
+		}
+		imm = pImm
+	} else {
 		return 0, ErrInvalidArgumentCount
 	}
 
 	parsedRegs, err := parseRegisters(args[0:2])
-	if err != nil {
-		return 0, err
-	}
-
-	imm, err := parseSignedImmediate(args[2])
 	if err != nil {
 		return 0, err
 	}

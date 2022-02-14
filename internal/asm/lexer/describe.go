@@ -20,6 +20,8 @@ func DescribeToken(token *Token) string {
 		return fmt.Sprintf("comment %q", token.Value)
 	case LABEL_DECLARATION:
 		return token.Value
+	case STRING:
+		return fmt.Sprintf("%q", token.Value)
 	default:
 		return DescribeTokenKind(token.Kind)
 	}
@@ -46,6 +48,10 @@ func DescribeTokenKind(kind TokenKind) string {
 		return "<line end>"
 	case LABEL_DECLARATION:
 		return "<label declaration>"
+	case FILL_STATEMENT:
+		return ".fill"
+	case STRING_STATEMENT:
+		return ".string"
 	case ADD:
 		return "ADD"
 	case ADDI:

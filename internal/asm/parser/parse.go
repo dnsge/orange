@@ -135,7 +135,10 @@ func ParseTokens(tokens []*lexer.Token) ([]*Statement, error) {
 
 		for i := range translated {
 			statements = append(statements, translated[i])
-			fmt.Printf("%s\n", translated[i].Body[0].Value)
+			for j := range translated[i].Body {
+				fmt.Printf("%s ", lexer.DescribeToken(translated[i].Body[j]))
+			}
+			fmt.Printf("\n")
 		}
 	}
 
@@ -180,11 +183,11 @@ func parseDirectiveTokens(directive *lexer.Token, stream *lexer.TokenStream) (*S
 
 // handlePrefixedExtraction returns a slice of Tokens after extracting the
 // expected tokens from the TokenStream
-func handlePrefixedExtraction(stream *lexer.TokenStream, prefix *lexer.Token, expectation *lexer.Expectation) ([]*lexer.Token, error) {
+func handlePrefixedExtraction(stream *lexer.TokenStream, prefix *lexer.Token, extractable lexer.Extractable) ([]*lexer.Token, error) {
 	// reserve space for prefix and expectations
-	body := make([]*lexer.Token, expectation.ExtractionCount()+1)
+	body := make([]*lexer.Token, 1, extractable.ExtractionCount()+1)
 	body[0] = prefix
-	if err := lexer.ExtractExpectedStructure(stream, body, expectation, 1); err != nil {
+	if err := extractable.Extract(stream, &body); err != nil {
 		return nil, err
 	} else {
 		return body, nil

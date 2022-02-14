@@ -11,6 +11,10 @@ var pseudoStatements = []pseudoStatement{
 		opcode:  lexer.CMPI,
 		convert: translateCMPI,
 	},
+	&opcodePseudoStatement{
+		opcode:  lexer.ADR,
+		convert: translateADR,
+	},
 }
 
 func translateStatement(opStatement *Statement) ([]*Statement, error) {
@@ -42,6 +46,20 @@ func translateCMPI(cmpiStatement *Statement) ([]*Statement, error) {
 		blankToken(lexer.REGISTER, "r0"),
 		cmpiStatement.Body[1],
 		cmpiStatement.Body[2],
+	}
+
+	return []*Statement{{
+		Body: newBody,
+		Kind: InstructionStatement,
+	}}, nil
+}
+
+func translateADR(adrStatement *Statement) ([]*Statement, error) {
+	newBody := []*lexer.Token{
+		remapToken(adrStatement.Body[0], lexer.LDREG, "LDREG"),
+		adrStatement.Body[1],
+		blankToken(lexer.REGISTER, "r0"),
+		blankToken(lexer.BASE_10_IMM, "#0"),
 	}
 
 	return []*Statement{{

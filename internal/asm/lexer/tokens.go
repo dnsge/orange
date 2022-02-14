@@ -48,6 +48,7 @@ const (
 	STWORD
 	STHWRD
 	STBYTE
+	ADR
 
 	MOVZ
 	MOVK
@@ -89,6 +90,7 @@ var opTokenPatterns = map[TokenKind][]byte{
 	STWORD: []byte(`STWORD`),
 	STHWRD: []byte(`STHWRD`),
 	STBYTE: []byte(`STBYTE`),
+	ADR:    []byte(`ADR`),
 
 	MOVZ: []byte(`MOVZ`),
 	MOVK: []byte(`MOVK`),

@@ -22,15 +22,25 @@ var (
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
 	)
-	// [OPCODE] [REG1], [[REG2], [IMM]]
-	mType_expectation = lexer.NewExpectation(
-		lexer.Expect(lexer.REGISTER),
-		lexer.ExpectIgnore(lexer.COMMA),
-		lexer.ExpectIgnore(lexer.LBRACKET),
-		lexer.Expect(lexer.REGISTER),
-		lexer.ExpectIgnore(lexer.COMMA),
-		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
-		lexer.ExpectIgnore(lexer.RBRACKET),
+	mType_expectation = lexer.OneOf(
+		// [OPCODE] [REG1], [[REG2], [IMM]]
+		lexer.NewExpectation(
+			lexer.Expect(lexer.REGISTER),
+			lexer.ExpectIgnore(lexer.COMMA),
+			lexer.ExpectIgnore(lexer.LBRACKET),
+			lexer.Expect(lexer.REGISTER),
+			lexer.ExpectIgnore(lexer.COMMA),
+			lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
+			lexer.ExpectIgnore(lexer.RBRACKET),
+		),
+		// [OPCODE] [REG1], [[REG2]] (no offset)
+		lexer.NewExpectation(
+			lexer.Expect(lexer.REGISTER),
+			lexer.ExpectIgnore(lexer.COMMA),
+			lexer.ExpectIgnore(lexer.LBRACKET),
+			lexer.Expect(lexer.REGISTER),
+			lexer.ExpectIgnore(lexer.RBRACKET),
+		),
 	)
 	// [OPCODE] [DEST], [IMM]
 	eType_expectation = lexer.NewExpectation(
@@ -48,21 +58,30 @@ var (
 	)
 	// [OPCODE]
 	oType_expectation = lexer.NewExpectation()
+
+	// ------ Translated Instructions ------
+
 	// [OPCODE] [REG1], [REG2]
-	cmpType_expectation = lexer.NewExpectation(
+	cmp_expectation = lexer.NewExpectation(
 		lexer.Expect(lexer.REGISTER),
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.Expect(lexer.REGISTER),
 	)
 	// [OPCODE] [REG1], [IMM]
-	cmpiType_expectation = lexer.NewExpectation(
+	cmpi_expectation = lexer.NewExpectation(
 		lexer.Expect(lexer.REGISTER),
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
 	)
+	// [OPCODE] [REG1], [IMM]
+	adr_expectation = lexer.NewExpectation(
+		lexer.Expect(lexer.REGISTER),
+		lexer.ExpectIgnore(lexer.COMMA),
+		lexer.ExpectAny(lexer.LABEL),
+	)
 )
 
-func getOpcodeStatementExpectation(opKind lexer.TokenKind) (*lexer.Expectation, error) {
+func getOpcodeStatementExpectation(opKind lexer.TokenKind) (lexer.Extractable, error) {
 	switch opKind {
 	case lexer.ADD,
 		lexer.SUB,
@@ -101,9 +120,11 @@ func getOpcodeStatementExpectation(opKind lexer.TokenKind) (*lexer.Expectation, 
 		lexer.NOOP:
 		return oType_expectation, nil
 	case lexer.CMP:
-		return cmpType_expectation, nil
+		return cmp_expectation, nil
 	case lexer.CMPI:
-		return cmpiType_expectation, nil
+		return cmpi_expectation, nil
+	case lexer.ADR:
+		return adr_expectation, nil
 	default:
 		return nil, fmt.Errorf("getOpcodeStatementExpectation: invalid opcode")
 	}

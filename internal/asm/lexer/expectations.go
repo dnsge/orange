@@ -1,6 +1,9 @@
 package lexer
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Expect returns an ExpectationEntry that captures an expected TokenKind
 func Expect(kind TokenKind) ExpectationEntry {
@@ -121,11 +124,11 @@ func (e *Expectation) ExtractionCount() int {
 }
 
 // ExtractExpectedStructure attempts to extract a subset of Tokens from a
-// TokenStream, storing the results in dest. dest must have a size large
-// enough to store all the expected tokens. offset is the index offset for
-// Tokens being stored in dest.
-func ExtractExpectedStructure(stream *TokenStream, dest []*Token, exp *Expectation, offset int) error {
-	i := 0
+// TokenStream, storing the results in dest. dest must have a capacity large
+// enough to store all the expected tokens.
+//
+// Because append is used, dest MUST NOT need to grow.
+func ExtractExpectedStructure(stream *TokenStream, dest *[]*Token, exp *Expectation) error {
 	for _, e := range exp.entries {
 		if !stream.HasNext() {
 			// Only report EOF errors if we cared about capturing the last token
@@ -139,12 +142,85 @@ func ExtractExpectedStructure(stream *TokenStream, dest []*Token, exp *Expectati
 		actual := stream.Pop()
 		if e.Matches(actual.Kind) {
 			if e.Keep() {
-				dest[offset+i] = actual
-				i++
+				*dest = append(*dest, actual)
 			}
 		} else {
 			return fmt.Errorf("unexpected token %s at %d:%d (expected %s)", DescribeToken(actual), actual.Row, actual.Column, e.Describe())
 		}
 	}
 	return nil
+}
+
+type OneOfExpectations struct {
+	expectations []*Expectation
+}
+
+func OneOf(expectations ...*Expectation) *OneOfExpectations {
+	return &OneOfExpectations{
+		expectations: expectations,
+	}
+}
+
+// ExtractOneOfExpectedStructure functions similar to ExtractExpectedStructure,
+// but instead extracts the first matching expectation from OneOfExpectations.
+func ExtractOneOfExpectedStructure(stream *TokenStream, dest *[]*Token, exps *OneOfExpectations) error {
+	var errorMessages []string
+
+	origDest := make([]*Token, len(*dest), cap(*dest))
+	copy(origDest, *dest)
+	startStreamPos := stream.Pos()
+
+outer:
+	for _, exp := range exps.expectations {
+		*dest = origDest
+		stream.Jump(startStreamPos)
+		for _, e := range exp.entries {
+			if !stream.HasNext() {
+				// Only report EOF errors if we cared about capturing the last token
+				if e.Keep() {
+					errorMessages = append(errorMessages, fmt.Sprintf("expected token %s but got EOF", e.Describe()))
+					continue outer
+				} else {
+					continue
+				}
+			}
+
+			actual := stream.Pop()
+			if e.Matches(actual.Kind) {
+				if e.Keep() {
+					*dest = append(*dest, actual)
+				}
+			} else {
+				errorMessages = append(errorMessages, fmt.Sprintf("unexpected token %s at %d:%d (expected %s)", DescribeToken(actual), actual.Row, actual.Column, e.Describe()))
+				continue outer
+			}
+		}
+
+		// If we get to this point, we've successfully matched one of the expectations.
+		return nil
+	}
+	return fmt.Errorf("failed to match one of multiple expectations: [\n\t%s\n]", strings.Join(errorMessages, ",\n\t"))
+}
+
+type Extractable interface {
+	Extract(stream *TokenStream, dest *[]*Token) error
+	ExtractionCount() int
+}
+
+func (e *Expectation) Extract(stream *TokenStream, dest *[]*Token) error {
+	return ExtractExpectedStructure(stream, dest, e)
+}
+
+func (o *OneOfExpectations) Extract(stream *TokenStream, dest *[]*Token) error {
+	return ExtractOneOfExpectedStructure(stream, dest, o)
+}
+
+func (o *OneOfExpectations) ExtractionCount() int {
+	max := 0
+	for _, exp := range o.expectations {
+		if exp.ExtractionCount() > max {
+			max = exp.ExtractionCount()
+		}
+	}
+	return max
 }

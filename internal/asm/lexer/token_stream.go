@@ -40,3 +40,13 @@ func (ts *TokenStream) Pop() *Token {
 	ts.pos++
 	return ts.tokens[oldPos]
 }
+
+// Pos returns the current position in the TokenStream
+func (ts *TokenStream) Pos() int {
+	return ts.pos
+}
+
+// Jump goes to an arbitrary position within the TokenStream
+func (ts *TokenStream) Jump(pos int) {
+	ts.pos = pos
+}
