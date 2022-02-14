@@ -45,12 +45,19 @@ func init() {
 	lexer.Add([]byte(`\$[a-zA-Z][a-zA-Z0-9]*:`), func(scan *lexmachine.Scanner, match *machines.Match) (interface{}, error) {
 		return &Token{
 			Kind:   LABEL_DECLARATION,
-			Value:  string(match.Bytes[:len(match.Bytes)-1]), // discard matched colon
+			Value:  string(match.Bytes[1 : len(match.Bytes)-1]), // discard matched dollar sign, colon
 			Row:    match.StartLine,
 			Column: match.StartColumn,
 		}, nil
 	})
-	lexer.Add([]byte(`\$[a-zA-Z][a-zA-Z0-9]*`), tokenOfKind(LABEL))
+	lexer.Add([]byte(`\$[a-zA-Z][a-zA-Z0-9]*`), func(scan *lexmachine.Scanner, match *machines.Match) (interface{}, error) {
+		return &Token{
+			Kind:   LABEL,
+			Value:  string(match.Bytes[1:]), // discard matched dollar sign
+			Row:    match.StartLine,
+			Column: match.StartColumn,
+		}, nil
+	})
 
 	lexer.Add([]byte(`\.fill`), tokenOfKind(FILL_STATEMENT))
 	lexer.Add([]byte(`\.string`), tokenOfKind(STRING_STATEMENT))

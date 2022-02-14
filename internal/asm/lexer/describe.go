@@ -31,17 +31,21 @@ func DescribeToken(token *Token) string {
 func DescribeTokenKind(kind TokenKind) string {
 	switch kind {
 	case REGISTER:
-		return "<register>"
+		return "register"
 	case BASE_8_IMM:
-		return "<base 8 imm>"
+		return "base 8 imm"
 	case BASE_10_IMM:
-		return "<base 10 imm>"
+		return "base 10 imm"
 	case BASE_16_IMM:
-		return "<base 16 imm>"
+		return "base 16 imm"
 	case LABEL:
-		return "<label>"
+		return "$label"
 	case COMMA:
-		return "<comma>"
+		return "','"
+	case LBRACKET:
+		return "'['"
+	case RBRACKET:
+		return "']'"
 	case COMMENT:
 		return "<comment>"
 	case LINE_END:

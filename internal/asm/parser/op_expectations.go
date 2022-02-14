@@ -8,6 +8,7 @@ import (
 var (
 	// [OPCODE] [DEST], [SRC1], [SRC2]
 	aType_expectation = lexer.NewExpectation(
+		"OPCODE r3, r1, r2",
 		lexer.Expect(lexer.REGISTER),
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.Expect(lexer.REGISTER),
@@ -16,6 +17,7 @@ var (
 	)
 	// [OPCODE] [DEST], [SRC1], [IMM]
 	aiType_expectation = lexer.NewExpectation(
+		"OPCODE r2, r1, #imm",
 		lexer.Expect(lexer.REGISTER),
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.Expect(lexer.REGISTER),
@@ -25,6 +27,7 @@ var (
 	mType_expectation = lexer.OneOf(
 		// [OPCODE] [REG1], [[REG2], [IMM]]
 		lexer.NewExpectation(
+			"OPCODE r2, [r1, #imm]",
 			lexer.Expect(lexer.REGISTER),
 			lexer.ExpectIgnore(lexer.COMMA),
 			lexer.ExpectIgnore(lexer.LBRACKET),
@@ -35,6 +38,7 @@ var (
 		),
 		// [OPCODE] [REG1], [[REG2]] (no offset)
 		lexer.NewExpectation(
+			"OPCODE r2, [r1]",
 			lexer.Expect(lexer.REGISTER),
 			lexer.ExpectIgnore(lexer.COMMA),
 			lexer.ExpectIgnore(lexer.LBRACKET),
@@ -44,37 +48,43 @@ var (
 	)
 	// [OPCODE] [DEST], [IMM]
 	eType_expectation = lexer.NewExpectation(
+		"OPCODE r1, #imm",
 		lexer.Expect(lexer.REGISTER),
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
 	)
 	// [OPCODE] [REG]
 	bType_expectation = lexer.NewExpectation(
+		"OPCODE r1",
 		lexer.Expect(lexer.REGISTER),
 	)
 	// [OPCODE] [IMM|LABEL]
 	biType_expectation = lexer.NewExpectation(
+		"OPCODE [#imm|$label]",
 		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM, lexer.LABEL),
 	)
 	// [OPCODE]
-	oType_expectation = lexer.NewExpectation()
+	oType_expectation = lexer.NewExpectation("OPCODE")
 
 	// ------ Translated Instructions ------
 
 	// [OPCODE] [REG1], [REG2]
 	cmp_expectation = lexer.NewExpectation(
+		"CMP r1, r2",
 		lexer.Expect(lexer.REGISTER),
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.Expect(lexer.REGISTER),
 	)
 	// [OPCODE] [REG1], [IMM]
 	cmpi_expectation = lexer.NewExpectation(
+		"CMP r1, #imm",
 		lexer.Expect(lexer.REGISTER),
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
 	)
-	// [OPCODE] [REG1], [IMM]
+	// [OPCODE] [REG1], [$label]
 	adr_expectation = lexer.NewExpectation(
+		"ADR r1, $label",
 		lexer.Expect(lexer.REGISTER),
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.ExpectAny(lexer.LABEL),

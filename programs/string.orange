@@ -1,0 +1,14 @@
+    ADR r1, $str1       ; load address of str1 into r1
+$loop:
+    LDBYTE r2, [r1]     ; get character at pointer
+    CMPI r2, #0         ; check if null terminator found
+    B.EQ $done
+    ADDI r1, r1, #1     ; advance pointer
+    B $loop
+$done:
+    HALT
+
+$num1:
+    .fill #123
+$str1:
+    .string "Hello, world!"

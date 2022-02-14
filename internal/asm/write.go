@@ -6,20 +6,34 @@ import (
 	"github.com/dnsge/orange/internal/asm/lexer"
 	"github.com/dnsge/orange/internal/asm/parser"
 	"io"
+	"math"
 )
 
 type labelMap map[string]uint32
 
 type assemblyContext struct {
-	statements []*parser.Statement
-	labels     labelMap
-	currLine   uint32
+	statements  []*parser.Statement
+	labels      labelMap
+	currAddress uint32
+}
+
+func (a *assemblyContext) OffsetFor(tok *lexer.Token) (uint16, error) {
+	labelAddr, ok := a.labels[tok.Value]
+	if !ok {
+		return 0, fmt.Errorf("undefined label %q at %d:%d", tok.Value, tok.Row, tok.Column)
+	}
+
+	computed := int32(labelAddr) - int32(a.currAddress)
+	if computed > math.MaxInt16 || computed < 0 {
+		return 0, fmt.Errorf("cannot represent label %s with relative with offset %d at %d:%d", tok.Value, computed, tok.Row, tok.Column)
+	}
+	return uint16(computed), nil
 }
 
 func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
-	aContext := assemblyContext{
-		labels:   make(labelMap),
-		currLine: 0,
+	aContext := &assemblyContext{
+		labels:      make(labelMap),
+		currAddress: 0,
 	}
 
 	rawData, err := io.ReadAll(inputFile)
@@ -48,12 +62,19 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 
 	for _, s := range aContext.statements {
 		if s.Kind == parser.InstructionStatement {
+			if s.Relocate != nil {
+				err = s.Relocate(aContext)
+				if err != nil {
+					return err
+				}
+			}
+
 			if assembled, err := aContext.assembleInstruction(s); err != nil {
 				return err
 			} else if err = binary.Write(outputFile, binary.LittleEndian, assembled); err != nil {
 				return err
 			}
-			aContext.currLine++
+			aContext.currAddress += 4
 		} else if s.Kind == parser.DirectiveStatement && lexer.IsDataDirective(s.Body[0].Kind) {
 			assembled, err := aContext.assembleDataDirective(s)
 			if err != nil {
@@ -64,7 +85,7 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 				if err = binary.Write(outputFile, binary.LittleEndian, assembled[i]); err != nil {
 					return err
 				}
-				aContext.currLine++
+				aContext.currAddress += 4
 			}
 		}
 	}

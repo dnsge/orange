@@ -246,13 +246,13 @@ func parseSigned64Immediate(immTok *lexer.Token) (int64, error) {
 
 func parseOffsetOrLabel(tok *lexer.Token, ctx *assemblyContext) (int16, error) {
 	if tok.Kind == lexer.LABEL {
-		labelName := tok.Value[1:]
+		labelName := tok.Value
 		labelTarget, ok := ctx.labels[labelName]
 		if !ok {
 			return 0, fmt.Errorf("undefined label %q at %d:%d", labelName, tok.Row, tok.Column)
 		}
 
-		instructionOffset := int32(labelTarget - ctx.currLine)
+		instructionOffset := int32(labelTarget-ctx.currAddress) / 4
 		if instructionOffset > math.MaxInt16 || instructionOffset < math.MinInt16 {
 			return 0, fmt.Errorf("cannot branch to relative with offset %d (computed at %d:%d)", instructionOffset, tok.Row, tok.Column)
 		}

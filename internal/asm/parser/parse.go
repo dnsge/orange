@@ -53,8 +53,13 @@ func TokenizeAll(data []byte) ([]*lexer.Token, error) {
 //  1. An instruction (e.g. ADD r3, r2, r1)
 //  2. A directive (e.g. a label declaration)
 type Statement struct {
-	Body []*lexer.Token
-	Kind StatementKind
+	Body     []*lexer.Token
+	Kind     StatementKind
+	Relocate func(relocator Relocator) error
+}
+
+type Relocator interface {
+	OffsetFor(label *lexer.Token) (uint16, error)
 }
 
 // ParseTokens aggregates tokens from the input stream into statements.
@@ -118,14 +123,11 @@ func ParseTokens(tokens []*lexer.Token) ([]*Statement, error) {
 					// The directive processed the new line, don't update waitingForLineEnd
 					dStatement.Body = dStatement.Body[:len(dStatement.Body)-1] // remove last token
 				}
-				//else {
-				//	waitingForLineEnd = true
-				//}
 
 				producedStatement = dStatement
 			}
 		} else {
-			return nil, fmt.Errorf("unexpected token: %s", lexer.DescribeToken(currentToken))
+			return nil, fmt.Errorf("unexpected token %s at %d:%d (expected statement)", lexer.DescribeToken(currentToken), currentToken.Row, currentToken.Column)
 		}
 
 		translated, err := translateStatement(producedStatement)

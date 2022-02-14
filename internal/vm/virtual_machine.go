@@ -50,7 +50,7 @@ func (v *VirtualMachine) ExecuteInstruction() {
 
 func (v *VirtualMachine) PrintState() {
 	fmt.Printf("Registers: %v\n", v.registers)
-	fmt.Printf("PC: %d\n", v.programCounter)
+	fmt.Printf("PC: 0x%08x\n", v.programCounter)
 }
 
 func (v *VirtualMachine) setFlags(res, carry uint64) {

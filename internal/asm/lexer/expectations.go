@@ -99,11 +99,12 @@ type ExpectationEntry interface {
 // Expectation is an aggregate of ExpectationEntries that matches multiple
 // expected Tokens.
 type Expectation struct {
-	keepCount int
-	entries   []ExpectationEntry
+	keepCount   int
+	entries     []ExpectationEntry
+	description string
 }
 
-func NewExpectation(entries ...ExpectationEntry) *Expectation {
+func NewExpectation(description string, entries ...ExpectationEntry) *Expectation {
 	keepCount := 0
 	for _, entry := range entries {
 		if entry.Keep() {
@@ -112,8 +113,9 @@ func NewExpectation(entries ...ExpectationEntry) *Expectation {
 	}
 
 	return &Expectation{
-		keepCount: keepCount,
-		entries:   entries,
+		keepCount:   keepCount,
+		entries:     entries,
+		description: description,
 	}
 }
 
@@ -133,7 +135,10 @@ func ExtractExpectedStructure(stream *TokenStream, dest *[]*Token, exp *Expectat
 		if !stream.HasNext() {
 			// Only report EOF errors if we cared about capturing the last token
 			if e.Keep() {
-				return fmt.Errorf("expected token %s but got EOF", e.Describe())
+				return &ExtractionError{
+					expectations:  []*Expectation{exp},
+					parseMessages: []string{fmt.Sprintf("expected token %s but got EOF", e.Describe())},
+				}
 			} else {
 				continue
 			}
@@ -145,7 +150,10 @@ func ExtractExpectedStructure(stream *TokenStream, dest *[]*Token, exp *Expectat
 				*dest = append(*dest, actual)
 			}
 		} else {
-			return fmt.Errorf("unexpected token %s at %d:%d (expected %s)", DescribeToken(actual), actual.Row, actual.Column, e.Describe())
+			return &ExtractionError{
+				expectations:  []*Expectation{exp},
+				parseMessages: []string{fmt.Sprintf("unexpected token %s at %d:%d (expected %s)", DescribeToken(actual), actual.Row, actual.Column, e.Describe())},
+			}
 		}
 	}
 	return nil
@@ -174,6 +182,7 @@ outer:
 	for _, exp := range exps.expectations {
 		*dest = origDest
 		stream.Jump(startStreamPos)
+		tokenProgress := 0 // TODO: Use tokenProgress to select most likely error
 		for _, e := range exp.entries {
 			if !stream.HasNext() {
 				// Only report EOF errors if we cared about capturing the last token
@@ -187,6 +196,7 @@ outer:
 
 			actual := stream.Pop()
 			if e.Matches(actual.Kind) {
+				tokenProgress++
 				if e.Keep() {
 					*dest = append(*dest, actual)
 				}
@@ -199,16 +209,25 @@ outer:
 		// If we get to this point, we've successfully matched one of the expectations.
 		return nil
 	}
-	return fmt.Errorf("failed to match one of multiple expectations: [\n\t%s\n]", strings.Join(errorMessages, ",\n\t"))
+
+	return &ExtractionError{
+		expectations:  exps.expectations,
+		parseMessages: errorMessages,
+	}
 }
 
 type Extractable interface {
 	Extract(stream *TokenStream, dest *[]*Token) error
 	ExtractionCount() int
+	Description() string
 }
 
 func (e *Expectation) Extract(stream *TokenStream, dest *[]*Token) error {
 	return ExtractExpectedStructure(stream, dest, e)
+}
+
+func (e *Expectation) Description() string {
+	return e.description
 }
 
 func (o *OneOfExpectations) Extract(stream *TokenStream, dest *[]*Token) error {
@@ -223,4 +242,46 @@ func (o *OneOfExpectations) ExtractionCount() int {
 		}
 	}
 	return max
+}
+
+func (o *OneOfExpectations) Description() string {
+	if len(o.expectations) == 1 {
+		return o.expectations[0].Description()
+	}
+
+	allDescriptions := make([]string, len(o.expectations))
+	for i := range o.expectations {
+		allDescriptions[i] = fmt.Sprintf("%q", o.expectations[i].Description())
+	}
+
+	return fmt.Sprintf("one of [%s]", strings.Join(allDescriptions, ", "))
+}
+
+type ExtractionError struct {
+	expectations  []*Expectation
+	parseMessages []string
+}
+
+func (ee *ExtractionError) Error() string {
+	builder := new(strings.Builder)
+	multiple := len(ee.expectations) > 1
+
+	builder.WriteString("failed to parse statement: ")
+	if multiple {
+		builder.WriteString("no match among multiple = [\n")
+	} else {
+		builder.WriteRune('\n')
+	}
+	for i := range ee.expectations {
+		builder.WriteRune('\t')
+		builder.WriteString(ee.expectations[i].Description())
+		builder.WriteString(" ==> ")
+		builder.WriteString(ee.parseMessages[i])
+		builder.WriteRune('\n')
+	}
+	if multiple {
+		builder.WriteRune(']')
+	}
+
+	return builder.String()
 }

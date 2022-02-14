@@ -16,18 +16,22 @@ func (a *assemblyContext) processLabelDeclarations() error {
 		if s.Kind == parser.DirectiveStatement {
 			directiveToken := s.Body[0]
 			if directiveToken.Kind == lexer.LABEL_DECLARATION {
-				labelName := directiveToken.Value[1:] // trim leading period
+				labelName := directiveToken.Value
 				if _, ok := a.labels[labelName]; ok {
 					// duplicate label found
 					return fmt.Errorf("duplicate label %q at %d:%d", labelName, directiveToken.Row, directiveToken.Column)
 				}
 				a.labels[labelName] = address
-			} else {
+			} else if directiveToken.Kind == lexer.FILL_STATEMENT {
 				// TODO: more checking here
-				address++
+				address += 8
+			} else if directiveToken.Kind == lexer.STRING_STATEMENT {
+				strBytes := len(s.Body[1].Value) + 1
+				strPaddedBytes := uint32(strBytes + strBytes%4)
+				address += strPaddedBytes
 			}
 		} else if s.Kind == parser.InstructionStatement {
-			address++
+			address += 4
 		}
 	}
 	return nil

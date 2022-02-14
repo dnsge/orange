@@ -1,6 +1,9 @@
 package parser
 
-import "github.com/dnsge/orange/internal/asm/lexer"
+import (
+	"fmt"
+	"github.com/dnsge/orange/internal/asm/lexer"
+)
 
 var pseudoStatements = []pseudoStatement{
 	&opcodePseudoStatement{
@@ -55,17 +58,28 @@ func translateCMPI(cmpiStatement *Statement) ([]*Statement, error) {
 }
 
 func translateADR(adrStatement *Statement) ([]*Statement, error) {
-	newBody := []*lexer.Token{
-		remapToken(adrStatement.Body[0], lexer.LDREG, "LDREG"),
-		adrStatement.Body[1],
-		blankToken(lexer.REGISTER, "r0"),
-		blankToken(lexer.BASE_10_IMM, "#0"),
+	// ADR r1, $label
+	// will become
+	// MOVZ r1, #offset
+
+	movStatement := &Statement{
+		Body: []*lexer.Token{
+			remapToken(adrStatement.Body[0], lexer.MOVZ, "MOVZ"),
+			adrStatement.Body[1],
+			remapToken(adrStatement.Body[1], lexer.BASE_10_IMM, "#0"),
+		}, Kind: InstructionStatement,
 	}
 
-	return []*Statement{{
-		Body: newBody,
-		Kind: InstructionStatement,
-	}}, nil
+	movStatement.Relocate = func(relocator Relocator) error {
+		offset, err := relocator.OffsetFor(adrStatement.Body[2])
+		if err != nil {
+			return err
+		}
+		movStatement.Body[2].Value = fmt.Sprintf("#%d", offset)
+		return nil
+	}
+
+	return []*Statement{movStatement}, nil
 }
 
 func remapToken(tok *lexer.Token, kind lexer.TokenKind, value string) *lexer.Token {
