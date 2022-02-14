@@ -3,6 +3,7 @@ package asm
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/dnsge/orange/internal/asm/lexer"
 	"github.com/dnsge/orange/internal/asm/parser"
 	"io"
 )
@@ -53,6 +54,18 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 				return err
 			}
 			aContext.currLine++
+		} else if s.Kind == parser.DirectiveStatement && lexer.IsDataDirective(s.Body[0].Kind) {
+			assembled, err := aContext.assembleDataDirective(s)
+			if err != nil {
+				return err
+			}
+
+			for i := range assembled {
+				if err = binary.Write(outputFile, binary.LittleEndian, assembled[i]); err != nil {
+					return err
+				}
+				aContext.currLine++
+			}
 		}
 	}
 

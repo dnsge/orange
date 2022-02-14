@@ -14,11 +14,17 @@ const (
 	LABEL
 
 	COMMA
+	LBRACKET
+	RBRACKET
 	COMMENT
 	LINE_END
 
+	STRING
+
 	_directiveStart
 	LABEL_DECLARATION
+	FILL_STATEMENT
+	STRING_STATEMENT
 	_directiveEnd
 
 	_opStart
@@ -117,6 +123,12 @@ func IsImmediate(kind TokenKind) bool {
 // IsDirective returns whether the TokenKind represents a directive
 func IsDirective(kind TokenKind) bool {
 	return kind > _directiveStart && kind < _directiveEnd
+}
+
+// IsDataDirective returns whether the TokenKind represents a directive that
+// will appear as data in the final assembled binary
+func IsDataDirective(kind TokenKind) bool {
+	return kind == FILL_STATEMENT || kind == STRING_STATEMENT
 }
 
 // IsOp returns whether the TokenKind represents an opcode

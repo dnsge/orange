@@ -127,6 +127,15 @@ func (e *Expectation) ExtractionCount() int {
 func ExtractExpectedStructure(stream *TokenStream, dest []*Token, exp *Expectation, offset int) error {
 	i := 0
 	for _, e := range exp.entries {
+		if !stream.HasNext() {
+			// Only report EOF errors if we cared about capturing the last token
+			if e.Keep() {
+				return fmt.Errorf("expected token %s but got EOF", e.Describe())
+			} else {
+				continue
+			}
+		}
+
 		actual := stream.Pop()
 		if e.Matches(actual.Kind) {
 			if e.Keep() {

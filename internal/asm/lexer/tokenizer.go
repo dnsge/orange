@@ -12,7 +12,8 @@ type Tokenizer struct {
 
 // New returns a Tokenizer over a byte slice
 func New(input []byte) (*Tokenizer, error) {
-	scanner, err := sharedLexer.Scanner(input)
+	extraLineEnd := append(input, '\n') // dumb workaround for lexing behavior
+	scanner, err := sharedLexer.Scanner(extraLineEnd)
 	if err != nil {
 		return nil, err
 	}

@@ -3,17 +3,17 @@
     MOVZ r4, #1
     MOVZ r10, #1
     MOVZ r11, #32
-.loop:
+$loop:
     AND r5, r3, r4
     CMP r5, r0
-    B.NEQ .add
-.incr:
+    B.NEQ $add
+$incr:
     LSL r4, r4, #1
     LSL r2, r2, #1
     ADDI r10, r10, #1 ; this is a comment
     CMP r10, r11
-    B.NEQ .loop
+    B.NEQ $loop
     HALT
-.add:
+$add:
     ADD r1, r1, r2
-    B .incr
+    B $incr

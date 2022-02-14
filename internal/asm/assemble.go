@@ -215,6 +215,28 @@ func parseSignedImmediate(immTok *lexer.Token) (int16, error) {
 	return int16(res), nil
 }
 
+func parseSigned64Immediate(immTok *lexer.Token) (int64, error) {
+	imm := immTok.Value[1:]
+	var base int
+
+	switch immTok.Kind {
+	case lexer.BASE_10_IMM:
+		base = 10
+	case lexer.BASE_16_IMM:
+		base = 16
+	case lexer.BASE_8_IMM:
+		base = 8
+	default:
+		return 0, fmt.Errorf("invalid immediate type %s", lexer.DescribeTokenKind(immTok.Kind))
+	}
+
+	res, err := strconv.ParseInt(imm, base, 64)
+	if err != nil {
+		return 0, err
+	}
+	return res, nil
+}
+
 func parseOffsetOrLabel(tok *lexer.Token, ctx *assemblyContext) (int16, error) {
 	if tok.Kind == lexer.LABEL {
 		labelName := tok.Value[1:]

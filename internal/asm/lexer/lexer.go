@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"fmt"
 	"github.com/timtadh/lexmachine"
 	"github.com/timtadh/lexmachine/machines"
 	"log"
@@ -17,6 +18,19 @@ func tokenOfKind(kind TokenKind) lexmachine.Action {
 	}
 }
 
+func stringToken(scan *lexmachine.Scanner, match *machines.Match) (interface{}, error) {
+	if len(match.Bytes) < 2 {
+		return nil, fmt.Errorf("expected string with len >= 2 but got %d", len(match.Bytes))
+	}
+
+	return &Token{
+		Kind:   STRING,
+		Value:  string(match.Bytes[1 : len(match.Bytes)-1]),
+		Row:    match.StartLine,
+		Column: match.StartColumn,
+	}, nil
+}
+
 var sharedLexer *lexmachine.Lexer = nil
 
 func init() {
@@ -28,7 +42,7 @@ func init() {
 	lexer.Add([]byte(`#(0|-?[1-9][0-9]*)`), tokenOfKind(BASE_10_IMM))
 	lexer.Add([]byte(`#0x(-?[0-9A-Fa-f]+)`), tokenOfKind(BASE_16_IMM))
 
-	lexer.Add([]byte(`\.[a-zA-Z][a-zA-Z0-9]*:`), func(scan *lexmachine.Scanner, match *machines.Match) (interface{}, error) {
+	lexer.Add([]byte(`\$[a-zA-Z][a-zA-Z0-9]*:`), func(scan *lexmachine.Scanner, match *machines.Match) (interface{}, error) {
 		return &Token{
 			Kind:   LABEL_DECLARATION,
 			Value:  string(match.Bytes[:len(match.Bytes)-1]), // discard matched colon
@@ -36,9 +50,17 @@ func init() {
 			Column: match.StartColumn,
 		}, nil
 	})
-	lexer.Add([]byte(`\.[a-zA-Z][a-zA-Z0-9]*`), tokenOfKind(LABEL))
+	lexer.Add([]byte(`\$[a-zA-Z][a-zA-Z0-9]*`), tokenOfKind(LABEL))
+
+	lexer.Add([]byte(`\.fill`), tokenOfKind(FILL_STATEMENT))
+	lexer.Add([]byte(`\.string`), tokenOfKind(STRING_STATEMENT))
+	lexer.Add([]byte(`"[^"]*"`), stringToken)
+	lexer.Add([]byte(`'[^']*'`), stringToken)
+	lexer.Add([]byte("`[^`]*`"), stringToken)
 
 	lexer.Add([]byte(`,`), tokenOfKind(COMMA))
+	lexer.Add([]byte(`\[`), tokenOfKind(LBRACKET))
+	lexer.Add([]byte(`\]`), tokenOfKind(RBRACKET))
 	lexer.Add([]byte(`;[^\n]*`), tokenOfKind(COMMENT))
 
 	for tokenKind, pattern := range opTokenPatterns {

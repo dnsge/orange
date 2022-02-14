@@ -22,13 +22,15 @@ var (
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
 	)
-	// [OPCODE] [REG1], [REG2], [IMM]
+	// [OPCODE] [REG1], [[REG2], [IMM]]
 	mType_expectation = lexer.NewExpectation(
 		lexer.Expect(lexer.REGISTER),
 		lexer.ExpectIgnore(lexer.COMMA),
+		lexer.ExpectIgnore(lexer.LBRACKET),
 		lexer.Expect(lexer.REGISTER),
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
+		lexer.ExpectIgnore(lexer.RBRACKET),
 	)
 	// [OPCODE] [DEST], [IMM]
 	eType_expectation = lexer.NewExpectation(

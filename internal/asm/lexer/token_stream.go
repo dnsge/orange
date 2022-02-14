@@ -33,6 +33,9 @@ func (ts *TokenStream) Peek() *Token {
 
 // Pop removes and returns the next Token, advancing the stream
 func (ts *TokenStream) Pop() *Token {
+	if ts.pos >= len(ts.tokens) {
+		return nil
+	}
 	oldPos := ts.pos
 	ts.pos++
 	return ts.tokens[oldPos]

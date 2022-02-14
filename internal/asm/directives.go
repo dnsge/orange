@@ -1,10 +1,14 @@
 package asm
 
 import (
+	"encoding/binary"
 	"fmt"
+	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/asm/lexer"
 	"github.com/dnsge/orange/internal/asm/parser"
 )
+
+var byteOrder = binary.LittleEndian
 
 func (a *assemblyContext) processLabelDeclarations() error {
 	var address uint32 = 0
@@ -18,10 +22,50 @@ func (a *assemblyContext) processLabelDeclarations() error {
 					return fmt.Errorf("duplicate label %q at %d:%d", labelName, directiveToken.Row, directiveToken.Column)
 				}
 				a.labels[labelName] = address
+			} else {
+				// TODO: more checking here
+				address++
 			}
 		} else if s.Kind == parser.InstructionStatement {
 			address++
 		}
 	}
 	return nil
+}
+
+func (a *assemblyContext) assembleDataDirective(s *parser.Statement) ([]arch.Instruction, error) {
+	directiveToken := s.Body[0]
+	if directiveToken.Kind == lexer.FILL_STATEMENT {
+		// fill a 64bit immediate
+		val, err := parseSigned64Immediate(s.Body[1])
+		if err != nil {
+			return nil, err
+		}
+		return []arch.Instruction{
+			arch.Instruction(val & 0xFFFFFFFF),
+			arch.Instruction((val >> 32) & 0xFFFFFFFF),
+		}, nil
+	} else if directiveToken.Kind == lexer.STRING_STATEMENT {
+		str := s.Body[1].Value
+		asBytes := []byte(str)
+		asBytes = append(asBytes, 0) // add null terminator
+		numWords := (len(asBytes) + len(asBytes)%4) / 4
+
+		var allWords []arch.Instruction
+		for i := 0; i < numWords; i++ {
+			start := i * 4
+			end := start + 4
+			part := []byte{0, 0, 0, 0}
+			if end > len(asBytes) {
+				end = len(asBytes)
+			}
+			copy(part, asBytes[start:end])
+			packed := byteOrder.Uint32(part)
+			allWords = append(allWords, packed)
+		}
+
+		return allWords, nil
+	} else {
+		return nil, fmt.Errorf("assembleDataDirective: unimplemented for directive %v", directiveToken.Kind)
+	}
 }

@@ -117,9 +117,10 @@ func ParseTokens(tokens []*lexer.Token) ([]*Statement, error) {
 				if dStatement.Body[len(dStatement.Body)-1].Kind == lexer.LINE_END {
 					// The directive processed the new line, don't update waitingForLineEnd
 					dStatement.Body = dStatement.Body[:len(dStatement.Body)-1] // remove last token
-				} else {
-					waitingForLineEnd = true
 				}
+				//else {
+				//	waitingForLineEnd = true
+				//}
 
 				producedStatement = dStatement
 			}
