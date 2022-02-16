@@ -1,4 +1,4 @@
-.PHONY: asm vm all mult
+.PHONY: asm vm all mult generate
 
 all: asm vm
 
@@ -11,3 +11,6 @@ vm:
 mult: all
 	./out/orangeasm ./programs/multiplication.orange ./mult.out
 	./out/orangevm ./mult.out
+
+generate:
+	go generate ./...

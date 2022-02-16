@@ -14,8 +14,6 @@ const (
 	XOR  = 7
 	LSL  = 8
 	LSR  = 9
-	CMP  = 10
-	CMPI = 11
 
 	LDREG  = 20
 	LDWORD = 21

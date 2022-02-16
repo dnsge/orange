@@ -98,7 +98,7 @@ func ParseTokens(tokens []*lexer.Token) ([]*Statement, error) {
 			waitingForLineEnd = false
 			// consume and ignore token
 			continue
-		} else if lexer.IsOp(currentToken.Kind) {
+		} else if lexer.IsTokenOp(currentToken.Kind) {
 			// make sure Statement does not trail other Statement
 			if waitingForLineEnd {
 				return nil, ErrExpectedLineEnd
@@ -110,7 +110,7 @@ func ParseTokens(tokens []*lexer.Token) ([]*Statement, error) {
 				producedStatement = opStatement
 				waitingForLineEnd = true
 			}
-		} else if lexer.IsDirective(currentToken.Kind) {
+		} else if lexer.IsTokenDirective(currentToken.Kind) {
 			// make sure Statement does not trail other Statement
 			if waitingForLineEnd {
 				return nil, ErrExpectedLineEnd

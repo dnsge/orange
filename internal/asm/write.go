@@ -75,7 +75,7 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 				return err
 			}
 			aContext.currAddress += 4
-		} else if s.Kind == parser.DirectiveStatement && lexer.IsDataDirective(s.Body[0].Kind) {
+		} else if s.Kind == parser.DirectiveStatement && IsDataDirective(s.Body[0].Kind) {
 			assembled, err := aContext.assembleDataDirective(s)
 			if err != nil {
 				return err
@@ -91,4 +91,10 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 	}
 
 	return nil
+}
+
+// IsDataDirective returns whether the TokenKind represents a directive that
+// will appear as data in the final assembled binary
+func IsDataDirective(kind lexer.TokenKind) bool {
+	return kind == lexer.FILL_STATEMENT || kind == lexer.STRING_STATEMENT
 }
