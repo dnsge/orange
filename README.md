@@ -23,7 +23,7 @@ To assemble a program, run the package located in `./cmd/orangeasm`. To run a pr
 
 ## Todo
 
-- [ ] Better, more modular parsing of assembly
+- [x] Better, more modular parsing of assembly
 - [ ] Object files with symbol table, relocation table
 - [ ] Stack management
 - [ ] System calls (for console output)

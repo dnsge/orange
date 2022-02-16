@@ -4,71 +4,60 @@
 * 32-bit word size
 * 16 64-bit registers
 
-`0000 0000 0000 0000 0000 0000 0000 0000`
-`00oo oooo dddd aaaa bbbb 0000 0000 0000`
-`00oo oooo dddd aaaa iiii iiii iiii iiii`
+Register allocation:
+* `r0`: Zero register (returns 0, ignores writes)
+* `r15`: Return address (`BL` instruction)
+* `r14`: Stack pointer
+* `r1-8`: Syscall arguments
+* `r9`: Syscall number
 
 ## Opcodes
-A-Type (Arithmetic/Logical):
-- `00oo oooo dddd aaaa bbbb 0000 0000 0000`
-  - ex: `ADD r1, r2, r3 ;; r1 = r2 + r3`
-- `00oo oooo dddd aaaa iiii iiii iiii iiii`
-  - ex: `ADDI r1, r2, #10 ;; r1 = r2 + 10`
+| Opcode   | Type    |
+|----------|---------|
+| `ADD`    | A-Type  |
+| `SUB`    | A-Type  |
+| `AND`    | A-Type  |
+| `OR`     | A-Type  |
+| `XOR`    | A-Type  |
+| `CMP`    | A-Type  |
+| `ADDI`   | AI-Type |
+| `SUBI`   | AI-Type |
+| `LSL`    | AI-Type |
+| `LSR`    | AI-Type |
+| `CMPI`   | AI-Type |
+| `LDREG`  | M-Type  |
+| `LDWORD` | M-Type  |
+| `LDHWRD` | M-Type  |
+| `LDBYTE` | M-Type  |
+| `STREG`  | M-Type  |
+| `STWORD` | M-Type  |
+| `STHWRD` | M-Type  |
+| `STBYTE` | M-Type  |
+| `ADR`    | M-Type  |
+| `MOVZ`   | E-Type  |
+| `MOVK`   | E-Type  |
+| `BREG`   | B-Type  |
+| `BL`     | B-Type  |
+| `B`      | BI-Type |
+| `B.EQ`   | BI-Type |
+| `B.NEQ`  | BI-Type |
+| `B.LT`   | BI-Type |
+| `B.LE`   | BI-Type |
+| `B.GT`   | BI-Type |
+| `B.GE`   | BI-Type |
+| `PUSH`   | R-Type  |
+| `POP`    | R-Type  |
+| `NOOP`   | O-Type  |
+| `HALT`   | O-Type  |
 
-* `ADD` Add
-* `ADDI` Add immediate
-* `SUB` Subtract
-* `SUBI` Subtract immediate
-* `AND` Logical AND
-* `OR` Logical OR
-* `XOR` Logical XOR
-* `LSL` Logical shift left
-* `LSR` Logical shift right
-* `CMP` Equiv to `SUB r0, r1, r2`
-* `CMPI` Equiv to `SUB r0, r1, imm`
-
-M-Type (Memory Operations):
-- `00oo oooo aaaa bbbb ssss ssss ssss ssss`
-  - ex: `LDREG r1, r2, #0`
-  - ex: `STREG r1, r2, #1`
-
-* `LDREG` Load 64-bit register
-* `LDWORD` Load 32-bit word
-* `LDHWRD` Load 16-bit half-word
-* `LDBYTE` Load byte
-* `STREG` Store 64-bit register
-* `STWORD` Store lower 32-bit word
-* `STHWRD` Store lower 16-bit half-word
-* `STBYTE` Store lower byte
-
-E-Type (Exchange):
-- `00oo oooo dddd 0000 iiii iiii iiii iiii`
-  - ex: `MOVZ r1, #100`
-
-* `MOVZ` Move immediate into zeroed register
-* `MOVK` Move immediate into register
-
-B-Type (Branches):
-- `00oo oooo 0000 0000 ssss ssss ssss ssss`'
-  - Relative branches
-- `00oo oooo aaaa 0000 0000 0000 0000 0000`
-  - `BREG`
-
-* `B` Branch by PC offset
-* `BL` Branch with link in R15
-* `BREG` Branch to register memory address
-* `B.EQ`
-* `B.NEQ`
-* `B.LT`
-* `B.LE`
-* `B.GT`
-* `B.GE`
-
-O-Type (Operations):
-
-* `HALT`
-* `NOOP`
-
-| test | test |
-| ---- | ---- |
-| asdf | asdf |
+## Instruction Formats
+| Type    | Layout                                   | Description                            |
+|---------|------------------------------------------|:---------------------------------------|
+| A-Type  | `00oooooo dddd aaaa bbbb 0000 0000 0000` | Operation with 3 registers             |
+| AI-Type | `00oooooo dddd aaaa iiii iiii iiii iiii` | Operation with 2 registers + immediate |
+| M-Type  | `00oooooo aaaa bbbb ssss ssss ssss ssss` | Memory operation                       |
+| E-Type  | `00oooooo dddd 0000 iiii iiii iiii iiii` | Exchange with immediate operation      |
+| B-Type  | `00oooooo aaaa 0000 0000 0000 0000 0000` | Branch operation                       |
+| BI-Type | `00oooooo 0000 0000 ssss ssss ssss ssss` | Branch with immediate operation        |
+| R-Type  | `00oooooo aaaa 0000 0000 0000 0000 0000` | Operation with register                |
+| O-Type  | `00oooooo 0000 0000 0000 0000 0000 0000` | Generic, no argument operation         |
