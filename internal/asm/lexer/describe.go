@@ -116,6 +116,10 @@ func DescribeTokenKind(kind TokenKind) string {
 		return "B.GE"
 	case BL:
 		return "BL"
+	case PUSH:
+		return "PUSH"
+	case POP:
+		return "POP"
 	case HALT:
 		return "HALT"
 	case NOOP:

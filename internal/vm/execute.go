@@ -97,6 +97,10 @@ func (v *VirtualMachine) executeBTypeInstruction(instruction arch.BTypeInstructi
 	switch instruction.Opcode {
 	case arch.BREG:
 		v.programCounter = uint32(destAddress) - 4
+	case arch.BL:
+		nextPC := v.programCounter + 4
+		v.registers.Set(arch.ReturnRegister, uint64(nextPC))
+		v.programCounter = uint32(destAddress) - 4
 	default:
 		panic("invalid B-Type opcode")
 	}
@@ -126,6 +130,23 @@ func (v *VirtualMachine) executeBTypeImmInstruction(instruction arch.BTypeImmIns
 
 	if doBranch {
 		v.programCounter += (uint32(instruction.Offset) - 1) * 4
+	}
+}
+
+func (v *VirtualMachine) executeRTypeInstruction(instruction arch.RTypeInstruction) {
+	switch instruction.Opcode {
+	case arch.PUSH: // store register then decrement stack pointer
+		val := v.registers.Get(instruction.RegA)
+		sp := v.registers.Get(arch.StackRegister)
+		sp -= 8
+		v.registers.Set(arch.StackRegister, sp) // decrement by 8 bytes = 1 register
+		v.memory.Write(uint32(sp), 64, val)
+	case arch.POP:
+		sp := v.registers.Get(arch.StackRegister)
+		v.registers.Set(arch.StackRegister, sp+8) // increment by 8 bytes = 1 register
+		v.registers.Set(instruction.RegA, v.memory.Read(uint32(sp), 64))
+	default:
+		panic("invalid R-Type opcode")
 	}
 }
 

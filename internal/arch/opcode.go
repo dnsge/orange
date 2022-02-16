@@ -37,6 +37,9 @@ const (
 	B_GE  = 39
 	BL    = 40
 
+	PUSH = 41
+	POP  = 42
+
 	HALT = 62
 	NOOP = 63
 )
@@ -51,6 +54,7 @@ const (
 	IType_E
 	IType_B
 	IType_BI
+	IType_R
 	IType_O
 )
 
@@ -87,8 +91,10 @@ func GetInstructionType(opcode Opcode) InstructionType {
 		B_GT,
 		B_GE:
 		return IType_BI
-	case BREG:
+	case BREG, BL:
 		return IType_B
+	case PUSH, POP:
+		return IType_R
 	case HALT,
 		NOOP:
 		return IType_O

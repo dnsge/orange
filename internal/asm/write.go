@@ -24,10 +24,23 @@ func (a *assemblyContext) OffsetFor(tok *lexer.Token) (uint16, error) {
 	}
 
 	computed := int32(labelAddr) - int32(a.currAddress)
-	if computed > math.MaxInt16 || computed < 0 {
+	if computed > math.MaxUint16 || computed < 0 {
 		return 0, fmt.Errorf("cannot represent label %s with relative with offset %d at %d:%d", tok.Value, computed, tok.Row, tok.Column)
 	}
 	return uint16(computed), nil
+}
+
+func (a *assemblyContext) SignedOffsetFor(tok *lexer.Token) (int16, error) {
+	labelAddr, ok := a.labels[tok.Value]
+	if !ok {
+		return 0, fmt.Errorf("undefined label %q at %d:%d", tok.Value, tok.Row, tok.Column)
+	}
+
+	computed := int32(labelAddr) - int32(a.currAddress)
+	if computed > math.MaxInt16 || computed < math.MinInt16 {
+		return 0, fmt.Errorf("cannot represent label %s with relative with offset %d at %d:%d", tok.Value, computed, tok.Row, tok.Column)
+	}
+	return int16(computed), nil
 }
 
 func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {

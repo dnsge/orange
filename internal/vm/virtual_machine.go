@@ -2,6 +2,7 @@ package vm
 
 import (
 	"fmt"
+	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/memory"
 )
 
@@ -37,6 +38,10 @@ func NewVirtualMachine(mem memory.Addressable) *VirtualMachine {
 		memory: mem,
 		halted: false,
 	}
+}
+
+func (v *VirtualMachine) InitStack(stackStartAddress uint64) {
+	v.registers.Set(arch.StackRegister, stackStartAddress)
 }
 
 func (v *VirtualMachine) ExecuteInstruction() {

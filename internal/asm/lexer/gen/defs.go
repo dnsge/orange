@@ -57,6 +57,8 @@ var instructionTokens = []*Instruction{
 	{"B.GT", OpCategory, DefaultPattern, NoSlice},
 	{"B.GE", OpCategory, DefaultPattern, NoSlice},
 	{"BL", OpCategory, DefaultPattern, NoSlice},
+	{"PUSH", OpCategory, DefaultPattern, NoSlice},
+	{"POP", OpCategory, DefaultPattern, NoSlice},
 	{"HALT", OpCategory, DefaultPattern, NoSlice},
 	{"NOOP", OpCategory, DefaultPattern, NoSlice},
 }

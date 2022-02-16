@@ -1,0 +1,11 @@
+    ADR r9, $func1
+    BL r9			; call func1
+    NOOP
+    HALT
+
+$func1:
+    PUSH r15			; save return address to stack
+    MOVZ r15, #123		; trample return address
+    ADD r15, r15, r15
+    POP r15				; restore return address
+    BREG r15			; return to caller

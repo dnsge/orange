@@ -7,6 +7,11 @@ import (
 	"os"
 )
 
+const (
+	stackBottom = 0x7FFF0000
+	stackSize   = 0x10000
+)
+
 func main() {
 	if len(os.Args) != 2 {
 		_, _ = fmt.Fprintf(os.Stderr, "usage: %s [input file]\n", os.Args[0])
@@ -30,6 +35,9 @@ func main() {
 		os.Exit(1)
 		return
 	}
+
+	mem.Alloc(stackBottom+1, stackSize)
+	sim.InitStack(stackBottom + stackSize)
 
 	sim.PrintState()
 	for !sim.Halted() {

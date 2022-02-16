@@ -18,6 +18,8 @@ const (
 	b_aRegOffset = 20
 	b_immOffset  = 0
 
+	r_aRegOffset = 20
+
 	regValMask = 0xF
 	immValMask = 0xFFFF
 )
@@ -161,6 +163,25 @@ func EncodeBTypeImmInstruction(instruction BTypeImmInstruction) Instruction {
 	var encoded uint32 = 0
 	encoded |= uint32(instruction.Opcode) << opcodeOffset
 	encoded |= (uint32(instruction.Offset) & 0xFFFF) << b_immOffset
+	return encoded
+}
+
+type RTypeInstruction struct {
+	Opcode Opcode
+	RegA   RegisterValue
+}
+
+func DecodeRTypeInstruction(instruction Instruction, opcode Opcode) RTypeInstruction {
+	return RTypeInstruction{
+		Opcode: opcode,
+		RegA:   extractRegister(instruction, r_aRegOffset),
+	}
+}
+
+func EncodeRTypeInstruction(instruction RTypeInstruction) Instruction {
+	var encoded uint32 = 0
+	encoded |= uint32(instruction.Opcode) << opcodeOffset
+	encoded |= uint32(instruction.RegA) << r_aRegOffset
 	return encoded
 }
 

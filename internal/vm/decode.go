@@ -30,6 +30,9 @@ func (v *VirtualMachine) executeInstruction(instruction arch.Instruction) {
 	case arch.IType_B:
 		i := arch.DecodeBTypeInstruction(instruction, opcode)
 		v.executeBTypeInstruction(i)
+	case arch.IType_R:
+		i := arch.DecodeRTypeInstruction(instruction, opcode)
+		v.executeRTypeInstruction(i)
 	case arch.IType_O:
 		i := arch.DecodeOTypeInstruction(instruction, opcode)
 		v.executeOTypeInstruction(i)

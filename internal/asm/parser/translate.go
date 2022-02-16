@@ -7,16 +7,71 @@ import (
 
 var pseudoStatements = []pseudoStatement{
 	&opcodePseudoStatement{
-		opcode:  lexer.CMP,
-		convert: translateCMP,
+		opcode: lexer.CMP,
+		convert: func(cmpStatement *Statement) ([]*Statement, error) {
+			// CMP r1, r2
+			// will become
+			// SUB r0, r1, r2
+
+			newBody := []*lexer.Token{
+				remapToken(cmpStatement.Body[0], lexer.SUB, "SUB"),
+				blankToken(lexer.REGISTER, "r0"),
+				cmpStatement.Body[1],
+				cmpStatement.Body[2],
+			}
+
+			return []*Statement{{
+				Body: newBody,
+				Kind: InstructionStatement,
+			}}, nil
+		},
 	},
 	&opcodePseudoStatement{
-		opcode:  lexer.CMPI,
-		convert: translateCMPI,
+		opcode: lexer.CMPI,
+		convert: func(cmpiStatement *Statement) ([]*Statement, error) {
+			// CMPI r1, #imm
+			// will become
+			// SUBI r0, r1, #imm
+
+			newBody := []*lexer.Token{
+				remapToken(cmpiStatement.Body[0], lexer.SUB, "SUBI"),
+				blankToken(lexer.REGISTER, "r0"),
+				cmpiStatement.Body[1],
+				cmpiStatement.Body[2],
+			}
+
+			return []*Statement{{
+				Body: newBody,
+				Kind: InstructionStatement,
+			}}, nil
+		},
 	},
 	&opcodePseudoStatement{
-		opcode:  lexer.ADR,
-		convert: translateADR,
+		opcode: lexer.ADR,
+		convert: func(adrStatement *Statement) ([]*Statement, error) {
+			// ADR r1, $label
+			// will become
+			// MOVZ r1, #offset
+
+			movStatement := &Statement{
+				Body: []*lexer.Token{
+					remapToken(adrStatement.Body[0], lexer.MOVZ, "MOVZ"),
+					adrStatement.Body[1],
+					remapToken(adrStatement.Body[1], lexer.BASE_10_IMM, "#0"),
+				}, Kind: InstructionStatement,
+			}
+
+			movStatement.Relocate = func(relocator Relocator) error {
+				offset, err := relocator.OffsetFor(adrStatement.Body[2])
+				if err != nil {
+					return err
+				}
+				movStatement.Body[2].Value = fmt.Sprintf("#%d", offset)
+				return nil
+			}
+
+			return []*Statement{movStatement}, nil
+		},
 	},
 }
 
@@ -27,59 +82,6 @@ func translateStatement(opStatement *Statement) ([]*Statement, error) {
 		}
 	}
 	return []*Statement{opStatement}, nil
-}
-
-func translateCMP(cmpStatement *Statement) ([]*Statement, error) {
-	newBody := []*lexer.Token{
-		remapToken(cmpStatement.Body[0], lexer.SUB, "SUB"),
-		blankToken(lexer.REGISTER, "r0"),
-		cmpStatement.Body[1],
-		cmpStatement.Body[2],
-	}
-
-	return []*Statement{{
-		Body: newBody,
-		Kind: InstructionStatement,
-	}}, nil
-}
-
-func translateCMPI(cmpiStatement *Statement) ([]*Statement, error) {
-	newBody := []*lexer.Token{
-		remapToken(cmpiStatement.Body[0], lexer.SUB, "SUBI"),
-		blankToken(lexer.REGISTER, "r0"),
-		cmpiStatement.Body[1],
-		cmpiStatement.Body[2],
-	}
-
-	return []*Statement{{
-		Body: newBody,
-		Kind: InstructionStatement,
-	}}, nil
-}
-
-func translateADR(adrStatement *Statement) ([]*Statement, error) {
-	// ADR r1, $label
-	// will become
-	// MOVZ r1, #offset
-
-	movStatement := &Statement{
-		Body: []*lexer.Token{
-			remapToken(adrStatement.Body[0], lexer.MOVZ, "MOVZ"),
-			adrStatement.Body[1],
-			remapToken(adrStatement.Body[1], lexer.BASE_10_IMM, "#0"),
-		}, Kind: InstructionStatement,
-	}
-
-	movStatement.Relocate = func(relocator Relocator) error {
-		offset, err := relocator.OffsetFor(adrStatement.Body[2])
-		if err != nil {
-			return err
-		}
-		movStatement.Body[2].Value = fmt.Sprintf("#%d", offset)
-		return nil
-	}
-
-	return []*Statement{movStatement}, nil
 }
 
 func remapToken(tok *lexer.Token, kind lexer.TokenKind, value string) *lexer.Token {

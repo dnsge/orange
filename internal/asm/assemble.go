@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/asm/lexer"
-	"math"
 	"strconv"
 )
 
@@ -156,6 +155,23 @@ func assembleOTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 	return arch.EncodeOTypeInstruction(instruction), nil
 }
 
+func assembleRTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
+	if len(args) != 1 {
+		return 0, ErrInvalidArgumentCount
+	}
+
+	regA, err := parseRegister(args[0])
+	if err != nil {
+		return 0, err
+	}
+
+	instruction := arch.RTypeInstruction{
+		Opcode: opcode,
+		RegA:   regA,
+	}
+	return arch.EncodeRTypeInstruction(instruction), nil
+}
+
 func parseRegister(registerName *lexer.Token) (arch.RegisterValue, error) {
 	regNumberStr := registerName.Value[1:]
 	val, err := strconv.ParseUint(regNumberStr, 10, 8)
@@ -246,18 +262,13 @@ func parseSigned64Immediate(immTok *lexer.Token) (int64, error) {
 
 func parseOffsetOrLabel(tok *lexer.Token, ctx *assemblyContext) (int16, error) {
 	if tok.Kind == lexer.LABEL {
-		labelName := tok.Value
-		labelTarget, ok := ctx.labels[labelName]
-		if !ok {
-			return 0, fmt.Errorf("undefined label %q at %d:%d", labelName, tok.Row, tok.Column)
+		instructionAddressOffset, err := ctx.SignedOffsetFor(tok)
+		if err != nil {
+			return 0, err
 		}
 
-		instructionOffset := int32(labelTarget-ctx.currAddress) / 4
-		if instructionOffset > math.MaxInt16 || instructionOffset < math.MinInt16 {
-			return 0, fmt.Errorf("cannot branch to relative with offset %d (computed at %d:%d)", instructionOffset, tok.Row, tok.Column)
-		}
-
-		return int16(instructionOffset), nil
+		instructionOffset := instructionAddressOffset / 4
+		return instructionOffset, nil
 	} else {
 		return parseSignedImmediate(tok)
 	}

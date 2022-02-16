@@ -89,6 +89,11 @@ var (
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.ExpectAny(lexer.LABEL),
 	)
+	// [OPCODE] [REG1]
+	r_expectation = lexer.NewExpectation(
+		"OPCODE r1",
+		lexer.Expect(lexer.REGISTER),
+	)
 )
 
 func getOpcodeStatementExpectation(opKind lexer.TokenKind) (lexer.Extractable, error) {
@@ -116,6 +121,8 @@ func getOpcodeStatementExpectation(opKind lexer.TokenKind) (lexer.Extractable, e
 	case lexer.MOVZ,
 		lexer.MOVK:
 		return eType_expectation, nil
+	case lexer.BREG, lexer.BL:
+		return bType_expectation, nil
 	case lexer.B,
 		lexer.B_EQ,
 		lexer.B_NEQ,
@@ -124,8 +131,8 @@ func getOpcodeStatementExpectation(opKind lexer.TokenKind) (lexer.Extractable, e
 		lexer.B_GT,
 		lexer.B_GE:
 		return biType_expectation, nil
-	case lexer.BREG:
-		return bType_expectation, nil
+	case lexer.PUSH, lexer.POP:
+		return r_expectation, nil
 	case lexer.HALT,
 		lexer.NOOP:
 		return oType_expectation, nil

@@ -30,6 +30,8 @@ func (a *assemblyContext) assembleInstruction(opStatement *parser.Statement) (ar
 		return assembleBTypeImmInstruction(opcode, args, a)
 	case arch.IType_B:
 		return assembleBTypeInstruction(opcode, args)
+	case arch.IType_R:
+		return assembleRTypeInstruction(opcode, args)
 	case arch.IType_O:
 		return assembleOTypeInstruction(opcode, args)
 	default:
