@@ -133,7 +133,8 @@ func getOpcodeStatementExpectation(opKind lexer.TokenKind) (lexer.Extractable, e
 		return biType_expectation, nil
 	case lexer.PUSH, lexer.POP:
 		return r_expectation, nil
-	case lexer.HALT,
+	case lexer.SYSCALL,
+		lexer.HALT,
 		lexer.NOOP:
 		return oType_expectation, nil
 	case lexer.CMP:

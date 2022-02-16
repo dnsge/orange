@@ -40,8 +40,9 @@ const (
 	PUSH = 41
 	POP  = 42
 
-	HALT = 62
-	NOOP = 63
+	SYSCALL = 61
+	HALT    = 62
+	NOOP    = 63
 )
 
 type InstructionType uint8
@@ -95,7 +96,8 @@ func GetInstructionType(opcode Opcode) InstructionType {
 		return IType_B
 	case PUSH, POP:
 		return IType_R
-	case HALT,
+	case SYSCALL,
+		HALT,
 		NOOP:
 		return IType_O
 	default:

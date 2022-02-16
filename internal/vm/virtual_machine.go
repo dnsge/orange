@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/memory"
+	"io"
+	"os"
 )
 
 type VirtualMachine struct {
@@ -12,6 +14,8 @@ type VirtualMachine struct {
 	flags          flags
 	memory         memory.Addressable
 	halted         bool
+
+	fds map[int]io.Writer
 }
 
 func (v *VirtualMachine) Memory() memory.Addressable {
@@ -37,6 +41,11 @@ func NewVirtualMachine(mem memory.Addressable) *VirtualMachine {
 		},
 		memory: mem,
 		halted: false,
+		fds: map[int]io.Writer{
+			0: os.Stdout,
+			1: os.Stdin,
+			2: os.Stderr,
+		},
 	}
 }
 
@@ -55,7 +64,7 @@ func (v *VirtualMachine) ExecuteInstruction() {
 
 func (v *VirtualMachine) PrintState() {
 	fmt.Printf("Registers: %v\n", v.registers)
-	fmt.Printf("PC: 0x%08x\n", v.programCounter)
+	fmt.Printf("PC: 0x%08x (line %d)\n\n", v.programCounter, v.programCounter/4+1)
 }
 
 func (v *VirtualMachine) setFlags(res, carry uint64) {

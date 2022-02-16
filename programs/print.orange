@@ -1,0 +1,34 @@
+	ADR r1, $outputString
+	ADR r9, $strLen
+	PUSH r1		; calculate string length. returns in stack
+	BL r9
+	POP r3		; store returned length in r3 for syscall
+	POP r2		; restore string pointer in r2 for syscall
+	MOVZ r1, #0	; set file descriptor to stdout
+	MOVZ r9, #1 ; set syscall number to 1 = write
+	SYSCALL		; execute write syscall
+	HALT
+
+$strLen:
+	; strLen returns the length of the null-terminated string
+	;
+	; Arguments:
+	;  - r1: pointer to string
+	;
+	; Returns:
+	;  - size, on stack
+
+	MOVZ r2, #0
+$strLenLoop:
+	LDBYTE r3, [r1]
+	CMPI r3, #0
+	B.EQ $strLenDone
+	ADDI r2, r2, #1		; increase length by one
+	ADDI r1, r1, #1		; advance pointer by one byte
+	B $strLenLoop
+$strLenDone:
+	PUSH r2
+	BREG r15
+
+$outputString:
+	.string "Hello from inside the Orange VM!"

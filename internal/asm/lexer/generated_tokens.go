@@ -1,6 +1,6 @@
 // Generated token definitions
 //
-// Generated at 2022-02-16T12:07:14-05:00
+// Generated at 2022-02-16T12:49:10-05:00
 
 package lexer
 
@@ -67,6 +67,7 @@ const (
 	BL
 	PUSH
 	POP
+	SYSCALL
 	HALT
 	NOOP
 	_opEnd
@@ -191,6 +192,8 @@ func addLexerPatterns(lexer *lexmachine.Lexer) { // REGISTER
 	lexer.Add([]byte("PUSH"), tokenOfKind(PUSH))
 	// POP
 	lexer.Add([]byte("POP"), tokenOfKind(POP))
+	// SYSCALL
+	lexer.Add([]byte("SYSCALL"), tokenOfKind(SYSCALL))
 	// HALT
 	lexer.Add([]byte("HALT"), tokenOfKind(HALT))
 	// NOOP
@@ -260,6 +263,8 @@ func GetTokenOpOpcode(opKind TokenKind) arch.Opcode {
 		return arch.PUSH
 	case POP:
 		return arch.POP
+	case SYSCALL:
+		return arch.SYSCALL
 	case HALT:
 		return arch.HALT
 	case NOOP:

@@ -17,6 +17,14 @@ type assemblyContext struct {
 	currAddress uint32
 }
 
+func (a *assemblyContext) AddressFor(tok *lexer.Token) (uint32, error) {
+	labelAddr, ok := a.labels[tok.Value]
+	if !ok {
+		return 0, fmt.Errorf("undefined label %q at %d:%d", tok.Value, tok.Row, tok.Column)
+	}
+	return labelAddr, nil
+}
+
 func (a *assemblyContext) OffsetFor(tok *lexer.Token) (uint16, error) {
 	labelAddr, ok := a.labels[tok.Value]
 	if !ok {
@@ -81,6 +89,7 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 					return err
 				}
 			}
+			printStatement(s)
 
 			if assembled, err := aContext.assembleInstruction(s); err != nil {
 				return err
@@ -94,6 +103,7 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 				return err
 			}
 
+			printStatement(s)
 			for i := range assembled {
 				if err = binary.Write(outputFile, binary.LittleEndian, assembled[i]); err != nil {
 					return err
@@ -110,4 +120,11 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 // will appear as data in the final assembled binary
 func IsDataDirective(kind lexer.TokenKind) bool {
 	return kind == lexer.FILL_STATEMENT || kind == lexer.STRING_STATEMENT
+}
+
+func printStatement(statement *parser.Statement) {
+	for _, tok := range statement.Body {
+		fmt.Printf("%s ", lexer.DescribeToken(tok))
+	}
+	fmt.Printf("\n")
 }

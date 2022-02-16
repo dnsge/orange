@@ -120,6 +120,8 @@ func DescribeTokenKind(kind TokenKind) string {
 		return "PUSH"
 	case POP:
 		return "POP"
+	case SYSCALL:
+		return "SYSCALL"
 	case HALT:
 		return "HALT"
 	case NOOP:

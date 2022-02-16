@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"github.com/dnsge/orange/internal/asm/lexer"
+	"math"
 )
 
 var pseudoStatements = []pseudoStatement{
@@ -51,7 +52,7 @@ var pseudoStatements = []pseudoStatement{
 		convert: func(adrStatement *Statement) ([]*Statement, error) {
 			// ADR r1, $label
 			// will become
-			// MOVZ r1, #offset
+			// MOVZ r1, #absAddress
 
 			movStatement := &Statement{
 				Body: []*lexer.Token{
@@ -62,11 +63,15 @@ var pseudoStatements = []pseudoStatement{
 			}
 
 			movStatement.Relocate = func(relocator Relocator) error {
-				offset, err := relocator.OffsetFor(adrStatement.Body[2])
+				address, err := relocator.AddressFor(adrStatement.Body[2])
 				if err != nil {
 					return err
 				}
-				movStatement.Body[2].Value = fmt.Sprintf("#%d", offset)
+
+				if address > math.MaxUint16 {
+					return fmt.Errorf("unable to represent absolute address %d in 16 bits", address)
+				}
+				movStatement.Body[2].Value = fmt.Sprintf("#%d", address)
 				return nil
 			}
 

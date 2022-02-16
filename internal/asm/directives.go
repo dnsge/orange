@@ -27,8 +27,8 @@ func (a *assemblyContext) processLabelDeclarations() error {
 				address += 8
 			} else if directiveToken.Kind == lexer.STRING_STATEMENT {
 				strBytes := len(s.Body[1].Value) + 1
-				strPaddedBytes := uint32(strBytes + strBytes%4)
-				address += strPaddedBytes
+				strPaddedBytes := roundUpToMultiple(strBytes, 4)
+				address += uint32(strPaddedBytes)
 			}
 		} else if s.Kind == parser.InstructionStatement {
 			address += 4
@@ -53,7 +53,7 @@ func (a *assemblyContext) assembleDataDirective(s *parser.Statement) ([]arch.Ins
 		str := s.Body[1].Value
 		asBytes := []byte(str)
 		asBytes = append(asBytes, 0) // add null terminator
-		numWords := (len(asBytes) + len(asBytes)%4) / 4
+		numWords := roundUpToMultiple(len(asBytes), 4) / 4
 
 		var allWords []arch.Instruction
 		for i := 0; i < numWords; i++ {
@@ -72,4 +72,17 @@ func (a *assemblyContext) assembleDataDirective(s *parser.Statement) ([]arch.Ins
 	} else {
 		return nil, fmt.Errorf("assembleDataDirective: unimplemented for directive %v", directiveToken.Kind)
 	}
+}
+
+func roundUpToMultiple(num, multiple int) int {
+	if multiple == 0 {
+		return num
+	}
+
+	remainder := num % multiple
+	if remainder == 0 {
+		return num
+	}
+
+	return num + multiple - remainder
 }

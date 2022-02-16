@@ -152,6 +152,8 @@ func (v *VirtualMachine) executeRTypeInstruction(instruction arch.RTypeInstructi
 
 func (v *VirtualMachine) executeOTypeInstruction(instruction arch.OTypeInstruction) {
 	switch instruction.Opcode {
+	case arch.SYSCALL:
+		v.executeSyscall()
 	case arch.NOOP:
 		return
 	case arch.HALT:

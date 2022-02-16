@@ -10,6 +10,8 @@ Register allocation:
 * `r14`: Stack pointer
 * `r1-8`: Syscall arguments
 * `r9`: Syscall number
+* Caller saved: `r1-r6`
+* Callee saved: `r7-12`
 
 ## Opcodes
 | Opcode   | Type    |

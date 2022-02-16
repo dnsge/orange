@@ -59,7 +59,9 @@ type Statement struct {
 }
 
 type Relocator interface {
+	AddressFor(label *lexer.Token) (uint32, error)
 	OffsetFor(label *lexer.Token) (uint16, error)
+	SignedOffsetFor(label *lexer.Token) (int16, error)
 }
 
 // ParseTokens aggregates tokens from the input stream into statements.
@@ -137,10 +139,6 @@ func ParseTokens(tokens []*lexer.Token) ([]*Statement, error) {
 
 		for i := range translated {
 			statements = append(statements, translated[i])
-			for j := range translated[i].Body {
-				fmt.Printf("%s ", lexer.DescribeToken(translated[i].Body[j]))
-			}
-			fmt.Printf("\n")
 		}
 	}
 
