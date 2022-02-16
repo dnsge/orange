@@ -20,6 +20,10 @@ To assemble a program, run the package located in `./cmd/orangeasm`. To run a pr
 
 - [multiplication.orange](./programs/multiplication.orange)
   - Multiplies two 32-bit numbers using grade-school multiplication algorithm
+- [string.orange](./programs/string.orange)
+  - Traversal of a null-terminated string
+- [stack.orange](./programs/stack.orange)
+  - Simple demonstration of calling functions and saving values to the stack
 
 ## Todo
 
