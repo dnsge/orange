@@ -5,6 +5,11 @@ import (
 )
 
 var (
+	// .section [identifier]
+	sectionDeclaration_expectation = lexer.NewExpectation(
+		".section identifier",
+		lexer.Expect(lexer.IDENTIFIER),
+	)
 	// [$label]:\n
 	labelDeclaration_expectation = lexer.NewExpectation("$label:")
 	// .fill [imm]
@@ -21,6 +26,7 @@ var (
 	)
 
 	directiveKindExpectationMap = map[lexer.TokenKind]*lexer.Expectation{
+		lexer.SECTION:           sectionDeclaration_expectation,
 		lexer.LABEL_DECLARATION: labelDeclaration_expectation,
 		lexer.FILL_STATEMENT:    fillStatement_expectation,
 		lexer.STRING_STATEMENT:  stringStatement_expectation,

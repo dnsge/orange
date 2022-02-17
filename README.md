@@ -26,6 +26,8 @@ To assemble a program, run the package located in `./cmd/orangeasm`. To run a pr
   - Simple demonstration of calling functions and saving values to the stack
 - [print.orange](./programs/print.orange)
   - Example usage of write syscall for printing a string
+- [sections.orange](./programs/sections.orange)
+  - Semantics for defining different sections
 
 ## Todo
 

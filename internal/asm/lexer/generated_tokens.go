@@ -1,6 +1,6 @@
 // Generated token definitions
 //
-// Generated at 2022-02-16T12:49:10-05:00
+// Generated at 2022-02-16T21:47:40-05:00
 
 package lexer
 
@@ -13,26 +13,6 @@ type TokenKind int
 
 const (
 	_invalid TokenKind = iota
-	_identifierStart
-	REGISTER
-	_identifierEnd
-	_immStart
-	BASE_8_IMM
-	BASE_10_IMM
-	BASE_16_IMM
-	_immEnd
-	STRING
-	LABEL
-	COMMA
-	LBRACKET
-	RBRACKET
-	COMMENT
-	LINE_END
-	_directiveStart
-	LABEL_DECLARATION
-	FILL_STATEMENT
-	STRING_STATEMENT
-	_directiveEnd
 	_opStart
 	ADD
 	ADDI
@@ -71,6 +51,28 @@ const (
 	HALT
 	NOOP
 	_opEnd
+	_identifierStart
+	REGISTER
+	IDENTIFIER
+	_identifierEnd
+	_immStart
+	BASE_8_IMM
+	BASE_10_IMM
+	BASE_16_IMM
+	_immEnd
+	STRING
+	LABEL
+	COMMA
+	LBRACKET
+	RBRACKET
+	COMMENT
+	LINE_END
+	_directiveStart
+	LABEL_DECLARATION
+	SECTION
+	FILL_STATEMENT
+	STRING_STATEMENT
+	_directiveEnd
 )
 
 // IsTokenIdentifier returns whether the token is in the Identifier category
@@ -112,6 +114,8 @@ func addLexerPatterns(lexer *lexmachine.Lexer) { // REGISTER
 	lexer.Add([]byte("\\$[a-zA-Z][a-zA-Z0-9]*:"), tokenOfKindSliced(LABEL_DECLARATION, 1, 1))
 	// LABEL
 	lexer.Add([]byte("\\$[a-zA-Z][a-zA-Z0-9]*"), tokenOfKindSliced(LABEL, 1, 0))
+	// SECTION
+	lexer.Add([]byte("\\.section"), tokenOfKind(SECTION))
 	// FILL_STATEMENT
 	lexer.Add([]byte("\\.fill"), tokenOfKind(FILL_STATEMENT))
 	// STRING_STATEMENT
@@ -198,6 +202,8 @@ func addLexerPatterns(lexer *lexmachine.Lexer) { // REGISTER
 	lexer.Add([]byte("HALT"), tokenOfKind(HALT))
 	// NOOP
 	lexer.Add([]byte("NOOP"), tokenOfKind(NOOP))
+	// IDENTIFIER
+	lexer.Add([]byte("[a-zA-Z][a-zA-Z0-9]*"), tokenOfKind(IDENTIFIER))
 }
 
 // GetTokenOpOpcode returns the arch.Opcode for the given TokenKind

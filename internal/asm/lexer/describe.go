@@ -8,6 +8,8 @@ func DescribeToken(token *Token) string {
 	switch token.Kind {
 	case REGISTER:
 		return token.Value
+	case IDENTIFIER:
+		return token.Value
 	case BASE_8_IMM:
 		return token.Value
 	case BASE_10_IMM:
@@ -32,6 +34,8 @@ func DescribeTokenKind(kind TokenKind) string {
 	switch kind {
 	case REGISTER:
 		return "register"
+	case IDENTIFIER:
+		return "identifier"
 	case BASE_8_IMM:
 		return "base 8 imm"
 	case BASE_10_IMM:
@@ -52,6 +56,8 @@ func DescribeTokenKind(kind TokenKind) string {
 		return "<line end>"
 	case LABEL_DECLARATION:
 		return "<label declaration>"
+	case SECTION:
+		return ".section"
 	case FILL_STATEMENT:
 		return ".fill"
 	case STRING_STATEMENT:

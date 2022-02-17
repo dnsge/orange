@@ -15,6 +15,7 @@ var instructionTokens = []*Instruction{
 	{"LABEL", NoCategory, Only(`\$[a-zA-Z][a-zA-Z0-9]*`), Slice(1, 0)},
 
 	// Directives
+	{"SECTION", "directive", Only(`\.section`), NoSlice},
 	{"FILL_STATEMENT", "directive", Only(`\.fill`), NoSlice},
 	{"STRING_STATEMENT", "directive", Only(`\.string`), NoSlice},
 
@@ -62,4 +63,7 @@ var instructionTokens = []*Instruction{
 	{"SYSCALL", OpCategory, DefaultPattern, NoSlice},
 	{"HALT", OpCategory, DefaultPattern, NoSlice},
 	{"NOOP", OpCategory, DefaultPattern, NoSlice},
+
+	// Generic identifier (last match)
+	{"IDENTIFIER", "identifier", Only(`[a-zA-Z][a-zA-Z0-9]*`), NoSlice},
 }

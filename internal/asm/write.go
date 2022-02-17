@@ -6,56 +6,14 @@ import (
 	"github.com/dnsge/orange/internal/asm/lexer"
 	"github.com/dnsge/orange/internal/asm/parser"
 	"io"
-	"math"
 )
 
-type labelMap map[string]uint32
-
 type assemblyContext struct {
-	statements  []*parser.Statement
-	labels      labelMap
-	currAddress uint32
-}
-
-func (a *assemblyContext) AddressFor(tok *lexer.Token) (uint32, error) {
-	labelAddr, ok := a.labels[tok.Value]
-	if !ok {
-		return 0, fmt.Errorf("undefined label %q at %d:%d", tok.Value, tok.Row, tok.Column)
-	}
-	return labelAddr, nil
-}
-
-func (a *assemblyContext) OffsetFor(tok *lexer.Token) (uint16, error) {
-	labelAddr, ok := a.labels[tok.Value]
-	if !ok {
-		return 0, fmt.Errorf("undefined label %q at %d:%d", tok.Value, tok.Row, tok.Column)
-	}
-
-	computed := int32(labelAddr) - int32(a.currAddress)
-	if computed > math.MaxUint16 || computed < 0 {
-		return 0, fmt.Errorf("cannot represent label %s with relative with offset %d at %d:%d", tok.Value, computed, tok.Row, tok.Column)
-	}
-	return uint16(computed), nil
-}
-
-func (a *assemblyContext) SignedOffsetFor(tok *lexer.Token) (int16, error) {
-	labelAddr, ok := a.labels[tok.Value]
-	if !ok {
-		return 0, fmt.Errorf("undefined label %q at %d:%d", tok.Value, tok.Row, tok.Column)
-	}
-
-	computed := int32(labelAddr) - int32(a.currAddress)
-	if computed > math.MaxInt16 || computed < math.MinInt16 {
-		return 0, fmt.Errorf("cannot represent label %s with relative with offset %d at %d:%d", tok.Value, computed, tok.Row, tok.Column)
-	}
-	return int16(computed), nil
+	statements []*parser.Statement
 }
 
 func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
-	aContext := &assemblyContext{
-		labels:      make(labelMap),
-		currAddress: 0,
-	}
+	aContext := &assemblyContext{}
 
 	rawData, err := io.ReadAll(inputFile)
 	if err != nil {
@@ -75,28 +33,28 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 	}
 
 	aContext.statements = statements
-	if err := aContext.processLabelDeclarations(); err != nil {
+
+	layout := newLayout()
+	err = layout.InitWithStatements(aContext.statements)
+	if err != nil {
 		return err
 	}
 
-	fmt.Printf("%#+v\n", aContext.labels)
-
-	for _, s := range aContext.statements {
+	err = layout.Traverse(func(s *parser.Statement, state TraversalState) error {
 		if s.Kind == parser.InstructionStatement {
 			if s.Relocate != nil {
-				err = s.Relocate(aContext)
+				err = s.Relocate(state)
 				if err != nil {
 					return err
 				}
 			}
 			printStatement(s)
 
-			if assembled, err := aContext.assembleInstruction(s); err != nil {
+			if assembled, err := aContext.assembleInstruction(s, state); err != nil {
 				return err
 			} else if err = binary.Write(outputFile, binary.LittleEndian, assembled); err != nil {
 				return err
 			}
-			aContext.currAddress += 4
 		} else if s.Kind == parser.DirectiveStatement && IsDataDirective(s.Body[0].Kind) {
 			assembled, err := aContext.assembleDataDirective(s)
 			if err != nil {
@@ -108,12 +66,13 @@ func AssembleStream(inputFile io.Reader, outputFile io.Writer) error {
 				if err = binary.Write(outputFile, binary.LittleEndian, assembled[i]); err != nil {
 					return err
 				}
-				aContext.currAddress += 4
 			}
 		}
-	}
 
-	return nil
+		return nil
+	})
+
+	return err
 }
 
 // IsDataDirective returns whether the TokenKind represents a directive that

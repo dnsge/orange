@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/asm/lexer"
+	"github.com/dnsge/orange/internal/asm/parser"
 	"strconv"
 )
 
@@ -127,12 +128,12 @@ func assembleBTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 	return arch.EncodeBTypeInstruction(instruction), nil
 }
 
-func assembleBTypeImmInstruction(opcode arch.Opcode, args []*lexer.Token, ctx *assemblyContext) (arch.Instruction, error) {
+func assembleBTypeImmInstruction(opcode arch.Opcode, args []*lexer.Token, relocator parser.Relocator) (arch.Instruction, error) {
 	if len(args) != 1 {
 		return 0, ErrInvalidArgumentCount
 	}
 
-	offset, err := parseOffsetOrLabel(args[0], ctx)
+	offset, err := parseOffsetOrLabel(args[0], relocator)
 	if err != nil {
 		return 0, err
 	}
@@ -260,9 +261,9 @@ func parseSigned64Immediate(immTok *lexer.Token) (int64, error) {
 	return res, nil
 }
 
-func parseOffsetOrLabel(tok *lexer.Token, ctx *assemblyContext) (int16, error) {
+func parseOffsetOrLabel(tok *lexer.Token, relocator parser.Relocator) (int16, error) {
 	if tok.Kind == lexer.LABEL {
-		instructionAddressOffset, err := ctx.SignedOffsetFor(tok)
+		instructionAddressOffset, err := relocator.SignedOffsetFor(tok)
 		if err != nil {
 			return 0, err
 		}

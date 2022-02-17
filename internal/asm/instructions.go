@@ -11,7 +11,7 @@ var (
 	ErrInvalidOpcode = fmt.Errorf("invalid opcode")
 )
 
-func (a *assemblyContext) assembleInstruction(opStatement *parser.Statement) (arch.Instruction, error) {
+func (a *assemblyContext) assembleInstruction(opStatement *parser.Statement, relocator parser.Relocator) (arch.Instruction, error) {
 	opcodeToken := opStatement.Body[0]
 	args := opStatement.Body[1:]
 
@@ -27,7 +27,7 @@ func (a *assemblyContext) assembleInstruction(opStatement *parser.Statement) (ar
 	case arch.IType_E:
 		return assembleETypeInstruction(opcode, args)
 	case arch.IType_BI:
-		return assembleBTypeImmInstruction(opcode, args, a)
+		return assembleBTypeImmInstruction(opcode, args, relocator)
 	case arch.IType_B:
 		return assembleBTypeInstruction(opcode, args)
 	case arch.IType_R:

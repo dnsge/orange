@@ -1,0 +1,15 @@
+.section text	; text is the default section so this line is optional
+	NOOP
+	HALT
+
+.section data	; begin a new section
+	.string "Data string 1"
+	.string "Data string 2"
+	.string "Data string 3"
+
+.section moreData	; new section
+	.fill #123
+	.fill #456
+
+.section data	; resume data section
+	.string "Data string 4 in the same section!"
