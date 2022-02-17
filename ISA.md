@@ -1,7 +1,7 @@
 # orange ISA
 
-* 32-bit instruction size
 * 32-bit word size
+* 32-bit (1 word) instruction size
 * 16 64-bit registers
 
 Register allocation:
@@ -10,47 +10,51 @@ Register allocation:
 * `r14`: Stack pointer
 * `r1-8`: Syscall arguments
 * `r9`: Syscall number
+
+ABI:
 * Caller saved: `r1-r6`
-* Callee saved: `r7-12`
+* Callee saved: `r7-13`
+* Function arguments: `r1-r4`
+* Return value(s): saved to stack, must be removed
 
 ## Opcodes
-| Opcode   | Type    |
-|----------|---------|
-| `ADD`    | A-Type  |
-| `SUB`    | A-Type  |
-| `AND`    | A-Type  |
-| `OR`     | A-Type  |
-| `XOR`    | A-Type  |
-| `CMP`    | A-Type  |
-| `ADDI`   | AI-Type |
-| `SUBI`   | AI-Type |
-| `LSL`    | AI-Type |
-| `LSR`    | AI-Type |
-| `CMPI`   | AI-Type |
-| `LDREG`  | M-Type  |
-| `LDWORD` | M-Type  |
-| `LDHWRD` | M-Type  |
-| `LDBYTE` | M-Type  |
-| `STREG`  | M-Type  |
-| `STWORD` | M-Type  |
-| `STHWRD` | M-Type  |
-| `STBYTE` | M-Type  |
-| `ADR`    | M-Type  |
-| `MOVZ`   | E-Type  |
-| `MOVK`   | E-Type  |
-| `BREG`   | B-Type  |
-| `BL`     | B-Type  |
-| `B`      | BI-Type |
-| `B.EQ`   | BI-Type |
-| `B.NEQ`  | BI-Type |
-| `B.LT`   | BI-Type |
-| `B.LE`   | BI-Type |
-| `B.GT`   | BI-Type |
-| `B.GE`   | BI-Type |
-| `PUSH`   | R-Type  |
-| `POP`    | R-Type  |
-| `NOOP`   | O-Type  |
-| `HALT`   | O-Type  |
+| Opcode   | Type    | Description                                    |
+|----------|---------|------------------------------------------------|
+| `ADD`    | A-Type  | Add                                            |
+| `SUB`    | A-Type  | Subtract                                       |
+| `AND`    | A-Type  | Bitwise AND                                    |
+| `OR`     | A-Type  | Bitwise OR                                     |
+| `XOR`    | A-Type  | Bitwise XOR                                    |
+| `CMP`    | A-Type  | Compare                                        |
+| `ADDI`   | AI-Type | Add immediate                                  |
+| `SUBI`   | AI-Type | Subtract immediate                             |
+| `LSL`    | AI-Type | Left shift by immediate                        |
+| `LSR`    | AI-Type | Right shift by immediate                       |
+| `CMPI`   | AI-Type | Compare with immediate                         |
+| `LDREG`  | M-Type  | Load 8 byte register                           |
+| `LDWORD` | M-Type  | Load 4 byte word                               |
+| `LDHWRD` | M-Type  | Load 2 byte half-word                          |
+| `LDBYTE` | M-Type  | Load 1 byte                                    |
+| `STREG`  | M-Type  | Store 8 byte register                          |
+| `STWORD` | M-Type  | Store lower 4 byte word                        |
+| `STHWRD` | M-Type  | Store lower 2 byte half-word                   |
+| `STBYTE` | M-Type  | Store lowest byte                              |
+| `ADR`    | M-Type  | Pseudo-instruction to load label address       |
+| `MOVZ`   | E-Type  | Zero register and move immediate               |
+| `MOVK`   | E-Type  | Move immediate into lower 16 bits              |
+| `BREG`   | B-Type  | Branch to address in register                  |
+| `BL`     | B-Type  | Branch to address in register with link in r15 |
+| `B`      | BI-Type | Branch to relative offset/label                |
+| `B.EQ`   | BI-Type | Branch to relative offset/label if ==          |
+| `B.NEQ`  | BI-Type | Branch to relative offset/label if !=          |
+| `B.LT`   | BI-Type | Branch to relative offset/label if <           |
+| `B.LE`   | BI-Type | Branch to relative offset/label if <=          |
+| `B.GT`   | BI-Type | Branch to relative offset/label if >           |
+| `B.GE`   | BI-Type | Branch to relative offset/label if >=          |
+| `PUSH`   | R-Type  | Push register to stack                         |
+| `POP`    | R-Type  | Pop register from stack                        |
+| `NOOP`   | O-Type  | No-op                                          |
+| `HALT`   | O-Type  | Halt VM                                        |
 
 ## Instruction Formats
 | Type    | Layout                                   | Description                            |

@@ -33,7 +33,7 @@ To assemble a program, run the package located in `./cmd/orangeasm`. To run a pr
 
 - [x] Better, more modular parsing of assembly
 - [ ] Object files with symbol table, relocation table
-- [ ] Stack management
+- [x] Stack management
 - [ ] System calls (for console output)
 - [ ] Dynamic memory allocation via syscalls
 - [ ] Extremely simple C subset + compiler
