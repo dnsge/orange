@@ -42,8 +42,8 @@ func NewVirtualMachine(mem memory.Addressable) *VirtualMachine {
 		memory: mem,
 		halted: false,
 		fds: map[int]io.Writer{
-			0: os.Stdout,
-			1: os.Stdin,
+			0: os.Stdin,
+			1: os.Stdout,
 			2: os.Stderr,
 		},
 	}
