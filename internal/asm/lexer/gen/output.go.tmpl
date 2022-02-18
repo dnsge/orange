@@ -27,7 +27,7 @@ func IsToken{{ .Title }}(kind TokenKind) bool {
 
 // addLexerPatterns initializes the lexer with patterns for instruction parsing
 func addLexerPatterns(lexer *lexmachine.Lexer) {
-{{- range $ins := .AllInstructions -}}
+{{ range $ins := .AllInstructions -}}
     {{ if $ins.Pattern.IsDefault -}}
             // {{ $ins.TokenName }}
             lexer.Add([]byte({{ printf "%q" $ins.TokenRegex }}), {{ $ins.CaptureFunc }})

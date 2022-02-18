@@ -3,6 +3,7 @@ package main
 var instructionTokens = []*Instruction{
 	// Identifiers
 	{"REGISTER", "identifier", OneOf(`r[0-9]`, `r1[0-5]`), NoSlice},
+	{"REGISTER", "identifier", Only(`rsp`), NoSlice}, // stack pointer alias
 
 	// Values
 	{"BASE_8_IMM", "imm", Only(`#0o(-?[0-7]+)`), NoSlice},

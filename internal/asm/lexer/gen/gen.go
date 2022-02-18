@@ -92,6 +92,8 @@ func mapToCategories(in []*Instruction) ([]*categoryOutput, map[string][]*Instru
 }
 
 func generateEnumOutput(categoryMap map[string][]*Instruction) ([]string, []string) {
+	used := make(map[string]struct{})
+
 	var lines []string
 	var opStrings []string
 	lines = append(lines, "_invalid TokenKind = iota")
@@ -100,6 +102,14 @@ func generateEnumOutput(categoryMap map[string][]*Instruction) ([]string, []stri
 			lines = append(lines, fmt.Sprintf("_%sStart", category))
 		}
 		for _, ins := range iList {
+			name := ins.EnumName()
+
+			if _, ok := used[name]; ok {
+				// already dealt with
+				continue
+			}
+			used[name] = struct{}{}
+
 			lines = append(lines, ins.EnumName())
 			if ins.IsRealOp() {
 				opStrings = append(opStrings, ins.EnumName())

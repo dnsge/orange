@@ -1,6 +1,6 @@
 // Generated token definitions
 //
-// Generated at 2022-02-16T21:47:40-05:00
+// Generated at 2022-02-17T23:17:14-05:00
 
 package lexer
 
@@ -96,10 +96,13 @@ func IsTokenOp(kind TokenKind) bool {
 }
 
 // addLexerPatterns initializes the lexer with patterns for instruction parsing
-func addLexerPatterns(lexer *lexmachine.Lexer) { // REGISTER
+func addLexerPatterns(lexer *lexmachine.Lexer) {
+	// REGISTER
 	lexer.Add([]byte("r[0-9]"), tokenOfKind(REGISTER))
 	// REGISTER
 	lexer.Add([]byte("r1[0-5]"), tokenOfKind(REGISTER))
+	// REGISTER
+	lexer.Add([]byte("rsp"), tokenOfKind(REGISTER))
 	// BASE_8_IMM
 	lexer.Add([]byte("#0o(-?[0-7]+)"), tokenOfKind(BASE_8_IMM))
 	// BASE_10_IMM

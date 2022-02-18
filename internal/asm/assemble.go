@@ -12,6 +12,12 @@ var (
 	ErrInvalidArgumentCount = fmt.Errorf("invalid argument count")
 )
 
+var (
+	registerAliases = map[string]arch.RegisterValue{
+		"rsp": arch.StackRegister,
+	}
+)
+
 func assembleATypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 3 {
 		return 0, ErrInvalidArgumentCount
@@ -174,6 +180,10 @@ func assembleRTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 }
 
 func parseRegister(registerName *lexer.Token) (arch.RegisterValue, error) {
+	if alias, ok := registerAliases[registerName.Value]; ok {
+		return alias, nil
+	}
+
 	regNumberStr := registerName.Value[1:]
 	val, err := strconv.ParseUint(regNumberStr, 10, 8)
 	if err != nil {
