@@ -81,3 +81,27 @@ func (alu *ALU) Negative() bool {
 func (alu *ALU) Carry() bool {
 	return alu.flags.Carry
 }
+
+func (alu *ALU) Equal() bool {
+	return alu.Zero()
+}
+
+func (alu *ALU) NotEqual() bool {
+	return !alu.Zero()
+}
+
+func (alu *ALU) LessThan() bool {
+	return alu.Negative() != alu.Carry()
+}
+
+func (alu *ALU) LessThanEqual() bool {
+	return alu.Zero() || (alu.Negative() != alu.Carry())
+}
+
+func (alu *ALU) GreaterThan() bool {
+	return !alu.Zero() && (alu.Negative() == alu.Carry())
+}
+
+func (alu *ALU) GreaterThanEqual() bool {
+	return alu.Negative() == alu.Carry()
+}

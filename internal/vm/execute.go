@@ -107,7 +107,6 @@ func (v *VirtualMachine) executeBTypeInstruction(instruction arch.BTypeInstructi
 }
 
 func (v *VirtualMachine) executeBTypeImmInstruction(instruction arch.BTypeImmInstruction) {
-	// todo: Verify behavior
 	doBranch := false
 	doLink := false
 
@@ -118,17 +117,17 @@ func (v *VirtualMachine) executeBTypeImmInstruction(instruction arch.BTypeImmIns
 		doBranch = true
 		doLink = true
 	case arch.B_EQ:
-		doBranch = v.alu.Zero()
+		doBranch = v.alu.Equal()
 	case arch.B_NEQ:
-		doBranch = !v.alu.Zero()
+		doBranch = !v.alu.NotEqual()
 	case arch.B_LT:
-		doBranch = v.alu.Negative() != v.alu.Carry()
+		doBranch = v.alu.LessThan()
 	case arch.B_LE:
-		doBranch = !(v.alu.Zero() && v.alu.Negative() == v.alu.Carry())
+		doBranch = v.alu.LessThanEqual()
 	case arch.B_GT:
-		doBranch = v.alu.Zero() && v.alu.Negative() == v.alu.Carry()
+		doBranch = v.alu.GreaterThan()
 	case arch.B_GE:
-		doBranch = v.alu.Negative() == v.alu.Carry()
+		doBranch = v.alu.GreaterThanEqual()
 	default:
 		panic("invalid BImm-Type opcode")
 	}
