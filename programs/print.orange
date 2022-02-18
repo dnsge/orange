@@ -1,7 +1,6 @@
 	ADR r1, $outputString
-	ADR r9, $strLen
-	PUSH r1		; calculate string length. returns in stack
-	BL r9
+	PUSH r1		; save string pointer for syscall
+	BL $strLen	; call strLen
 	POP r3		; store returned length in r3 for syscall
 	POP r2		; restore string pointer in r2 for syscall
 	MOVZ r1, #1	; set file descriptor to stdout

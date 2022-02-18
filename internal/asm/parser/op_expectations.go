@@ -121,7 +121,7 @@ func getOpcodeStatementExpectation(opKind lexer.TokenKind) (lexer.Extractable, e
 	case lexer.MOVZ,
 		lexer.MOVK:
 		return eType_expectation, nil
-	case lexer.BREG, lexer.BL:
+	case lexer.BREG, lexer.BLR:
 		return bType_expectation, nil
 	case lexer.B,
 		lexer.B_EQ,
@@ -129,7 +129,8 @@ func getOpcodeStatementExpectation(opKind lexer.TokenKind) (lexer.Extractable, e
 		lexer.B_LT,
 		lexer.B_LE,
 		lexer.B_GT,
-		lexer.B_GE:
+		lexer.B_GE,
+		lexer.BL:
 		return biType_expectation, nil
 	case lexer.PUSH, lexer.POP:
 		return r_expectation, nil

@@ -29,16 +29,17 @@ const (
 
 	B     = 32
 	BREG  = 33
-	B_EQ  = 34
-	B_NEQ = 35
-	B_LT  = 36
-	B_LE  = 37
-	B_GT  = 38
-	B_GE  = 39
-	BL    = 40
+	BLR   = 34
+	B_EQ  = 35
+	B_NEQ = 36
+	B_LT  = 37
+	B_LE  = 38
+	B_GT  = 39
+	B_GE  = 40
+	BL    = 41
 
-	PUSH = 41
-	POP  = 42
+	PUSH = 42
+	POP  = 43
 
 	SYSCALL = 61
 	HALT    = 62
@@ -85,6 +86,7 @@ func GetInstructionType(opcode Opcode) InstructionType {
 		MOVK:
 		return IType_E
 	case B,
+		BL,
 		B_EQ,
 		B_NEQ,
 		B_LT,
@@ -92,7 +94,7 @@ func GetInstructionType(opcode Opcode) InstructionType {
 		B_GT,
 		B_GE:
 		return IType_BI
-	case BREG, BL:
+	case BREG, BLR:
 		return IType_B
 	case PUSH, POP:
 		return IType_R

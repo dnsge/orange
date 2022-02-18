@@ -1,5 +1,4 @@
-    ADR r9, $func1
-    BL r9			; call func1
+    BL $func1			; call func1
     NOOP
     HALT
 

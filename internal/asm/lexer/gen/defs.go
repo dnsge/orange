@@ -52,6 +52,7 @@ var instructionTokens = []*Instruction{
 	{"MOVK", OpCategory, DefaultPattern, NoSlice},
 	{"B", OpCategory, DefaultPattern, NoSlice},
 	{"BREG", OpCategory, DefaultPattern, NoSlice},
+	{"BLR", OpCategory, DefaultPattern, NoSlice},
 	{"B.EQ", OpCategory, DefaultPattern, NoSlice},
 	{"B.NEQ", OpCategory, DefaultPattern, NoSlice},
 	{"B.LT", OpCategory, DefaultPattern, NoSlice},

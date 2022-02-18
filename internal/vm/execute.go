@@ -97,7 +97,7 @@ func (v *VirtualMachine) executeBTypeInstruction(instruction arch.BTypeInstructi
 	switch instruction.Opcode {
 	case arch.BREG:
 		v.programCounter = uint32(destAddress) - 4
-	case arch.BL:
+	case arch.BLR:
 		nextPC := v.programCounter + 4
 		v.registers.Set(arch.ReturnRegister, uint64(nextPC))
 		v.programCounter = uint32(destAddress) - 4
@@ -109,9 +109,14 @@ func (v *VirtualMachine) executeBTypeInstruction(instruction arch.BTypeInstructi
 func (v *VirtualMachine) executeBTypeImmInstruction(instruction arch.BTypeImmInstruction) {
 	// todo: Verify behavior
 	doBranch := false
+	doLink := false
+
 	switch instruction.Opcode {
 	case arch.B:
 		doBranch = true
+	case arch.BL:
+		doBranch = true
+		doLink = true
 	case arch.B_EQ:
 		doBranch = v.flags.Zero
 	case arch.B_NEQ:
@@ -126,6 +131,11 @@ func (v *VirtualMachine) executeBTypeImmInstruction(instruction arch.BTypeImmIns
 		doBranch = v.flags.Negative == v.flags.Carry
 	default:
 		panic("invalid BImm-Type opcode")
+	}
+
+	if doLink {
+		nextPC := v.programCounter + 4
+		v.registers.Set(arch.ReturnRegister, uint64(nextPC))
 	}
 
 	if doBranch {

@@ -1,6 +1,6 @@
 // Generated token definitions
 //
-// Generated at 2022-02-17T23:17:14-05:00
+// Generated at 2022-02-17T23:32:21-05:00
 
 package lexer
 
@@ -38,6 +38,7 @@ const (
 	MOVK
 	B
 	BREG
+	BLR
 	B_EQ
 	B_NEQ
 	B_LT
@@ -181,6 +182,8 @@ func addLexerPatterns(lexer *lexmachine.Lexer) {
 	lexer.Add([]byte("B"), tokenOfKind(B))
 	// BREG
 	lexer.Add([]byte("BREG"), tokenOfKind(BREG))
+	// BLR
+	lexer.Add([]byte("BLR"), tokenOfKind(BLR))
 	// B.EQ
 	lexer.Add([]byte("B\\.EQ"), tokenOfKind(B_EQ))
 	// B.NEQ
@@ -254,6 +257,8 @@ func GetTokenOpOpcode(opKind TokenKind) arch.Opcode {
 		return arch.B
 	case BREG:
 		return arch.BREG
+	case BLR:
+		return arch.BLR
 	case B_EQ:
 		return arch.B_EQ
 	case B_NEQ:

@@ -104,10 +104,12 @@ func DescribeTokenKind(kind TokenKind) string {
 		return "MOVZ"
 	case MOVK:
 		return "MOVK"
-	case B:
-		return "B"
 	case BREG:
 		return "BREG"
+	case BLR:
+		return "BLR"
+	case B:
+		return "B"
 	case B_EQ:
 		return "B.EQ"
 	case B_NEQ:
