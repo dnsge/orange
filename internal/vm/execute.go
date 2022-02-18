@@ -13,15 +13,15 @@ func (v *VirtualMachine) executeATypeInstruction(instruction arch.ATypeInstructi
 	var res uint64
 	switch instruction.Opcode {
 	case arch.ADD:
-		res = v.add(aVal, bVal)
+		res = v.alu.ADD(aVal, bVal)
 	case arch.SUB:
-		res = v.sub(aVal, bVal)
+		res = v.alu.SUB(aVal, bVal)
 	case arch.AND:
-		res = v.and(aVal, bVal)
+		res = v.alu.AND(aVal, bVal)
 	case arch.OR:
-		res = v.or(aVal, bVal)
+		res = v.alu.OR(aVal, bVal)
 	case arch.XOR:
-		res = v.xor(aVal, bVal)
+		res = v.alu.XOR(aVal, bVal)
 	default:
 		panic("invalid A-Type opcode")
 	}
@@ -36,13 +36,13 @@ func (v *VirtualMachine) executeATypeImmInstruction(instruction arch.ATypeImmIns
 	var res uint64
 	switch instruction.Opcode {
 	case arch.ADDI:
-		res = v.add(aVal, bVal)
+		res = v.alu.ADD(aVal, bVal)
 	case arch.SUBI:
-		res = v.sub(aVal, bVal)
+		res = v.alu.SUB(aVal, bVal)
 	case arch.LSL:
-		res = v.lsl(aVal, bVal)
+		res = v.alu.LSL(aVal, bVal)
 	case arch.LSR:
-		res = v.lsr(aVal, bVal)
+		res = v.alu.LSR(aVal, bVal)
 	default:
 		panic("invalid AImm-Type opcode")
 	}
@@ -118,17 +118,17 @@ func (v *VirtualMachine) executeBTypeImmInstruction(instruction arch.BTypeImmIns
 		doBranch = true
 		doLink = true
 	case arch.B_EQ:
-		doBranch = v.flags.Zero
+		doBranch = v.alu.Zero()
 	case arch.B_NEQ:
-		doBranch = !v.flags.Zero
+		doBranch = !v.alu.Zero()
 	case arch.B_LT:
-		doBranch = v.flags.Negative != v.flags.Carry
+		doBranch = v.alu.Negative() != v.alu.Carry()
 	case arch.B_LE:
-		doBranch = !(v.flags.Zero && v.flags.Negative == v.flags.Carry)
+		doBranch = !(v.alu.Zero() && v.alu.Negative() == v.alu.Carry())
 	case arch.B_GT:
-		doBranch = v.flags.Zero && v.flags.Negative == v.flags.Carry
+		doBranch = v.alu.Zero() && v.alu.Negative() == v.alu.Carry()
 	case arch.B_GE:
-		doBranch = v.flags.Negative == v.flags.Carry
+		doBranch = v.alu.Negative() == v.alu.Carry()
 	default:
 		panic("invalid BImm-Type opcode")
 	}
