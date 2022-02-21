@@ -85,15 +85,15 @@ var pseudoStatements = []pseudoStatement{
 	},
 	&opcodePseudoStatement{
 		opcode: lexer.MOV,
-		convert: func(cmpiStatement *Statement) ([]*Statement, error) {
+		convert: func(movStatement *Statement) ([]*Statement, error) {
 			// MOV r2, r1
 			// will become
 			// ADD r2, r1, r0
 
 			newBody := []*lexer.Token{
-				remapToken(cmpiStatement.Body[0], lexer.SUB, "ADD"),
-				cmpiStatement.Body[1],
-				cmpiStatement.Body[2],
+				remapToken(movStatement.Body[0], lexer.SUB, "ADD"),
+				movStatement.Body[1],
+				movStatement.Body[2],
 				blankToken(lexer.REGISTER, "r0"),
 			}
 
