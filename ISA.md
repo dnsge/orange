@@ -8,12 +8,14 @@ Register allocation:
 * `r0`: Zero register (returns 0, ignores writes)
 * `r15`: Return address (`BL` instruction)
 * `r14`: Stack pointer
-* `r1-8`: Syscall arguments
+* `r1-6`: Syscall arguments
+* `r7`: Syscall return value
+* `r8`: Syscall error (or zero)
 * `r9`: Syscall number
 
 ABI:
-* Caller saved: `r1-r6`
-* Callee saved: `r7-13`
+* Caller saved: `r1-r9`
+* Callee saved: `r10-13`
 * Function arguments: `r1-r4`
 * Return value(s): saved to stack, must be removed
 

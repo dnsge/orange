@@ -1,0 +1,43 @@
+.section text
+	ADR r1, $prompt
+	PUSH r1
+	BL $strLen
+	POP r3
+	POP r2
+	MOVZ r1, #1			; print to stdout
+	MOVZ r9, #1			; write syscall number
+	SYSCALL
+
+	SUBI rsp, rsp, #255 ; allocate space for 255 characters
+	ADD r2, rsp, r0     ; move buffer pointer into r2
+	MOVZ r3, #255		; set buffer length to 255
+	MOVZ r1, #0			; read from stdin
+	MOVZ r9, #0			; read syscall number
+	SYSCALL
+
+	HALT
+
+$strLen:
+	; strLen returns the length of the null-terminated string
+	;
+	; Arguments:
+	;  - r1: pointer to string
+	;
+	; Returns:
+	;  - size, on stack
+
+	MOVZ r2, #0
+$_strLen.loop:
+	LDBYTE r3, [r1]
+	CMPI r3, #0
+	B.EQ $_strLen.done
+	ADDI r2, r2, #1		; increase length by one
+	ADDI r1, r1, #1		; advance pointer by one byte
+	B $_strLen.loop
+$_strLen.done:
+	PUSH r2
+	BREG r15
+
+.section data
+
+$prompt: .string "Enter some text: "
