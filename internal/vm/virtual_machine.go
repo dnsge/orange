@@ -15,7 +15,7 @@ type VirtualMachine struct {
 	memory         memory.Addressable
 	halted         bool
 
-	fds map[int]io.Writer
+	fds map[int]io.ReadWriter
 }
 
 func (v *VirtualMachine) Memory() memory.Addressable {
@@ -37,7 +37,7 @@ func NewVirtualMachine(mem memory.Addressable) *VirtualMachine {
 		alu:            newALU(),
 		memory:         mem,
 		halted:         false,
-		fds: map[int]io.Writer{
+		fds: map[int]io.ReadWriter{
 			0: os.Stdin,
 			1: os.Stdout,
 			2: os.Stderr,

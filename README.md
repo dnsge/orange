@@ -32,8 +32,9 @@ To assemble a program, run the package located in `./cmd/orangeasm`. To run a pr
 ## Todo
 
 - [x] Better, more modular parsing of assembly
-- [ ] Object files with symbol table, relocation table
 - [x] Stack management
+- [ ] Proper error management
+- [ ] Object files with symbol table, relocation table
 - [ ] System calls (for console output)
 - [ ] Dynamic memory allocation via syscalls
-- [ ] Extremely simple C subset + compiler
+- [ ] Simple language + compiler
