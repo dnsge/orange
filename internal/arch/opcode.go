@@ -106,3 +106,78 @@ func GetInstructionType(opcode Opcode) InstructionType {
 		return IType_Invalid
 	}
 }
+
+func (o Opcode) String() string {
+	switch o {
+	case ADD:
+		return "ADD"
+	case ADDI:
+		return "ADDI"
+	case SUB:
+		return "SUB"
+	case SUBI:
+		return "SUBI"
+	case AND:
+		return "AND"
+	case OR:
+		return "OR"
+	case XOR:
+		return "XOR"
+	case LSL:
+		return "LSL"
+	case LSR:
+		return "LSR"
+	case LDREG:
+		return "LDREG"
+	case LDWORD:
+		return "LDWORD"
+	case LDHWRD:
+		return "LDHWRD"
+	case LDBYTE:
+		return "LDBYTE"
+	case STREG:
+		return "STREG"
+	case STWORD:
+		return "STWORD"
+	case STHWRD:
+		return "STHWRD"
+	case STBYTE:
+		return "STBYTE"
+	case MOVZ:
+		return "MOVZ"
+	case MOVK:
+		return "MOVK"
+	case B:
+		return "B"
+	case BREG:
+		return "BREG"
+	case BLR:
+		return "BLR"
+	case B_EQ:
+		return "B_EQ"
+	case B_NEQ:
+		return "B_NEQ"
+	case B_LT:
+		return "B_LT"
+	case B_LE:
+		return "B_LE"
+	case B_GT:
+		return "B_GT"
+	case B_GE:
+		return "B_GE"
+	case BL:
+		return "BL"
+	case PUSH:
+		return "PUSH"
+	case POP:
+		return "POP"
+	case SYSCALL:
+		return "SYSCALL"
+	case HALT:
+		return "HALT"
+	case NOOP:
+		return "NOOP"
+	default:
+		return "UNKNOWN"
+	}
+}
