@@ -119,7 +119,7 @@ func (v *VirtualMachine) executeBTypeImmInstruction(instruction arch.BTypeImmIns
 	case arch.B_EQ:
 		doBranch = v.alu.Equal()
 	case arch.B_NEQ:
-		doBranch = !v.alu.NotEqual()
+		doBranch = v.alu.NotEqual()
 	case arch.B_LT:
 		doBranch = v.alu.LessThan()
 	case arch.B_LE:
