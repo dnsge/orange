@@ -48,6 +48,7 @@ var instructionTokens = []*Instruction{
 	{"STHWRD", OpCategory, DefaultPattern, NoSlice},
 	{"STBYTE", OpCategory, DefaultPattern, NoSlice},
 	{"ADR", OpCategory, DefaultPattern, NoSlice},
+	{"MOV", OpCategory, DefaultPattern, NoSlice},
 	{"MOVZ", OpCategory, DefaultPattern, NoSlice},
 	{"MOVK", OpCategory, DefaultPattern, NoSlice},
 	{"B", OpCategory, DefaultPattern, NoSlice},

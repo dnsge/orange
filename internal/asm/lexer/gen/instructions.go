@@ -44,6 +44,7 @@ var fakeOps = []string{
 	"ADR",
 	"CMP",
 	"CMPI",
+	"MOV",
 }
 
 func (i *Instruction) IsRealOp() bool {

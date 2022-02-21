@@ -1,6 +1,6 @@
 // Generated token definitions
 //
-// Generated at 2022-02-20T20:35:47-05:00
+// Generated at 2022-02-20T21:50:15-05:00
 
 package lexer
 
@@ -34,6 +34,7 @@ const (
 	STHWRD
 	STBYTE
 	ADR
+	MOV
 	MOVZ
 	MOVK
 	B
@@ -174,6 +175,8 @@ func addLexerPatterns(lexer *lexmachine.Lexer) {
 	lexer.Add([]byte("STBYTE"), tokenOfKind(STBYTE))
 	// ADR
 	lexer.Add([]byte("ADR"), tokenOfKind(ADR))
+	// MOV
+	lexer.Add([]byte("MOV"), tokenOfKind(MOV))
 	// MOVZ
 	lexer.Add([]byte("MOVZ"), tokenOfKind(MOVZ))
 	// MOVK

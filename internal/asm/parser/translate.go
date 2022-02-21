@@ -83,6 +83,26 @@ var pseudoStatements = []pseudoStatement{
 			return []*Statement{movStatement}, nil
 		},
 	},
+	&opcodePseudoStatement{
+		opcode: lexer.MOV,
+		convert: func(cmpiStatement *Statement) ([]*Statement, error) {
+			// MOV r2, r1
+			// will become
+			// ADD r2, r1, r0
+
+			newBody := []*lexer.Token{
+				remapToken(cmpiStatement.Body[0], lexer.SUB, "ADD"),
+				cmpiStatement.Body[1],
+				cmpiStatement.Body[2],
+				blankToken(lexer.REGISTER, "r0"),
+			}
+
+			return []*Statement{{
+				Body: newBody,
+				Kind: InstructionStatement,
+			}}, nil
+		},
+	},
 }
 
 func translateStatement(opStatement *Statement) ([]*Statement, error) {

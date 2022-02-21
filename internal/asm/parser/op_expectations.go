@@ -82,6 +82,13 @@ var (
 		lexer.ExpectIgnore(lexer.COMMA),
 		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
 	)
+	// [OPCODE] [REG1], [REG2]
+	mov_expectation = lexer.NewExpectation(
+		"MOV r1, r2",
+		lexer.Expect(lexer.REGISTER),
+		lexer.ExpectIgnore(lexer.COMMA),
+		lexer.Expect(lexer.REGISTER),
+	)
 	// [OPCODE] [REG1], [$label]
 	adr_expectation = lexer.NewExpectation(
 		"ADR r1, $label",
@@ -142,6 +149,8 @@ func getOpcodeStatementExpectation(opKind lexer.TokenKind) (lexer.Extractable, e
 		return cmp_expectation, nil
 	case lexer.CMPI:
 		return cmpi_expectation, nil
+	case lexer.MOV:
+		return mov_expectation, nil
 	case lexer.ADR:
 		return adr_expectation, nil
 	default:
