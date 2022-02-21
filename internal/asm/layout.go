@@ -2,6 +2,7 @@ package asm
 
 import (
 	"fmt"
+	"github.com/dnsge/orange/internal/asm/asmerr"
 	"github.com/dnsge/orange/internal/asm/lexer"
 	"github.com/dnsge/orange/internal/asm/parser"
 	"math"
@@ -51,35 +52,35 @@ func (l *Layout) SectionByName(name string) *Section {
 }
 
 // LocateStatement returns the absolute address of the statement in the final binary
-func (l *Layout) LocateStatement(statement *parser.Statement) (int, error) {
+func (l *Layout) LocateStatement(statement *parser.Statement) (int, bool) {
 	address := 0
 	for _, sec := range l.Sections {
 		for i := range sec.Statements {
 			s := sec.Statements[i]
 			if s == statement {
-				return address, nil
+				return address, true
 			}
 
 			sSize := sec.StatementSizes[i]
 			address += sSize
 		}
 	}
-	return 0, fmt.Errorf("LocateStatement: not found in any section")
+	return 0, false
 }
 
 // LocateLabel returns the absolute address of the label in the final binary
-func (l *Layout) LocateLabel(label string) (uint32, error) {
+func (l *Layout) LocateLabel(label string) (uint32, bool) {
 	labelStatement, ok := l.Labels[label]
 	if !ok {
-		return 0, fmt.Errorf("label %q: %w", label, ErrLabelNotFound)
+		return 0, false
 	}
 
-	located, err := l.LocateStatement(labelStatement)
-	if err != nil {
-		return 0, fmt.Errorf("label %q: %w", label, ErrLabelNotFound)
+	located, found := l.LocateStatement(labelStatement)
+	if !found {
+		return 0, false
 	}
 
-	return uint32(located), nil
+	return uint32(located), true
 }
 
 // InitWithStatements initializes the layout with a list of statements
@@ -98,9 +99,12 @@ func (l *Layout) InitWithStatements(statements []*parser.Statement) error {
 				currentSection = l.SectionByName(sectionName)
 			} else if directiveToken.Kind == lexer.LABEL_DECLARATION {
 				labelName := directiveToken.Value
-				if _, ok := l.Labels[labelName]; ok {
+				if other, ok := l.Labels[labelName]; ok {
 					// duplicate label found
-					return fmt.Errorf("duplicate label %q at %d:%d", labelName, directiveToken.Row, directiveToken.Column)
+					return &asmerr.DuplicateLabelError{
+						Label: directiveToken,
+						Other: other.Body[0],
+					}
 				}
 
 				l.Labels[labelName] = s
@@ -164,33 +168,41 @@ func (b *boundTraversalState) Address() int {
 	return b.currentAddress
 }
 
-func (b *boundTraversalState) AddressFor(label *lexer.Token) (uint32, error) {
+func (b *boundTraversalState) AddressFor(label *lexer.Token) (uint32, bool) {
 	return b.boundLayout.LocateLabel(label.Value)
 }
 
 func (b *boundTraversalState) OffsetFor(label *lexer.Token) (uint16, error) {
-	labelAddr, err := b.AddressFor(label)
-	if err != nil {
-		return 0, fmt.Errorf("undefined label %q at %d:%d", label.Value, label.Row, label.Column)
+	labelAddr, found := b.AddressFor(label)
+	if !found {
+		return 0, &asmerr.LabelNotFoundError{Label: label}
 	}
 
-	computed := int32(labelAddr) - int32(b.currentAddress)
+	computed := int64(labelAddr) - int64(b.currentAddress)
 	if computed > math.MaxUint16 || computed < 0 {
-		return 0, fmt.Errorf("cannot represent label %s with relative with offset %d at %d:%d", label.Value, computed, label.Row, label.Column)
+		return 0, &asmerr.BadComputedAddressError{
+			Label:    label,
+			Computed: computed,
+			Signed:   false,
+		}
 	}
 
 	return uint16(computed), nil
 }
 
 func (b *boundTraversalState) SignedOffsetFor(label *lexer.Token) (int16, error) {
-	labelAddr, err := b.AddressFor(label)
-	if err != nil {
-		return 0, fmt.Errorf("undefined label %q at %d:%d", label.Value, label.Row, label.Column)
+	labelAddr, found := b.AddressFor(label)
+	if !found {
+		return 0, &asmerr.LabelNotFoundError{Label: label}
 	}
 
-	computed := int32(labelAddr) - int32(b.currentAddress)
+	computed := int64(labelAddr) - int64(b.currentAddress)
 	if computed > math.MaxInt16 || computed < math.MinInt16 {
-		return 0, fmt.Errorf("cannot represent label %s with relative with offset %d at %d:%d", label.Value, computed, label.Row, label.Column)
+		return 0, &asmerr.BadComputedAddressError{
+			Label:    label,
+			Computed: computed,
+			Signed:   true,
+		}
 	}
 
 	return int16(computed), nil

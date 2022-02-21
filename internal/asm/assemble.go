@@ -1,15 +1,11 @@
 package asm
 
 import (
-	"fmt"
 	"github.com/dnsge/orange/internal/arch"
+	"github.com/dnsge/orange/internal/asm/asmerr"
 	"github.com/dnsge/orange/internal/asm/lexer"
 	"github.com/dnsge/orange/internal/asm/parser"
 	"strconv"
-)
-
-var (
-	ErrInvalidArgumentCount = fmt.Errorf("invalid argument count")
 )
 
 var (
@@ -20,7 +16,11 @@ var (
 
 func assembleATypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 3 {
-		return 0, ErrInvalidArgumentCount
+		return 0, &asmerr.InvalidArgumentCountError{
+			Opcode:   opcode,
+			Expected: 3,
+			Got:      len(args),
+		}
 	}
 
 	parsedRegs, err := parseRegisters(args)
@@ -40,7 +40,11 @@ func assembleATypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 
 func assembleATypeImmInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 3 {
-		return 0, ErrInvalidArgumentCount
+		return 0, &asmerr.InvalidArgumentCountError{
+			Opcode:   opcode,
+			Expected: 3,
+			Got:      len(args),
+		}
 	}
 
 	parsedRegs, err := parseRegisters(args[0:2])
@@ -77,7 +81,11 @@ func assembleMTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 		}
 		imm = pImm
 	} else {
-		return 0, ErrInvalidArgumentCount
+		return 0, &asmerr.InvalidArgumentCountError{
+			Opcode:   opcode,
+			Expected: 3,
+			Got:      len(args),
+		}
 	}
 
 	parsedRegs, err := parseRegisters(args[0:2])
@@ -96,7 +104,11 @@ func assembleMTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 
 func assembleETypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 2 {
-		return 0, ErrInvalidArgumentCount
+		return 0, &asmerr.InvalidArgumentCountError{
+			Opcode:   opcode,
+			Expected: 2,
+			Got:      len(args),
+		}
 	}
 
 	regDest, err := parseRegister(args[0])
@@ -119,7 +131,11 @@ func assembleETypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 
 func assembleBTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 1 {
-		return 0, ErrInvalidArgumentCount
+		return 0, &asmerr.InvalidArgumentCountError{
+			Opcode:   opcode,
+			Expected: 1,
+			Got:      len(args),
+		}
 	}
 
 	regA, err := parseRegister(args[0])
@@ -136,7 +152,11 @@ func assembleBTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 
 func assembleBTypeImmInstruction(opcode arch.Opcode, args []*lexer.Token, relocator parser.Relocator) (arch.Instruction, error) {
 	if len(args) != 1 {
-		return 0, ErrInvalidArgumentCount
+		return 0, &asmerr.InvalidArgumentCountError{
+			Opcode:   opcode,
+			Expected: 1,
+			Got:      len(args),
+		}
 	}
 
 	offset, err := parseOffsetOrLabel(args[0], relocator)
@@ -153,7 +173,11 @@ func assembleBTypeImmInstruction(opcode arch.Opcode, args []*lexer.Token, reloca
 
 func assembleOTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 0 {
-		return 0, ErrInvalidArgumentCount
+		return 0, &asmerr.InvalidArgumentCountError{
+			Opcode:   opcode,
+			Expected: 0,
+			Got:      len(args),
+		}
 	}
 
 	instruction := arch.OTypeInstruction{
@@ -164,7 +188,11 @@ func assembleOTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 
 func assembleRTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
 	if len(args) != 1 {
-		return 0, ErrInvalidArgumentCount
+		return 0, &asmerr.InvalidArgumentCountError{
+			Opcode:   opcode,
+			Expected: 1,
+			Got:      len(args),
+		}
 	}
 
 	regA, err := parseRegister(args[0])
@@ -217,7 +245,7 @@ func parseUnsignedImmediate(immTok *lexer.Token) (uint16, error) {
 	case lexer.BASE_8_IMM:
 		base = 8
 	default:
-		return 0, fmt.Errorf("invalid immediate type %s", lexer.DescribeTokenKind(immTok.Kind))
+		return 0, &asmerr.InvalidImmediateError{Token: immTok}
 	}
 
 	res, err := strconv.ParseUint(imm, base, 16)
@@ -239,7 +267,7 @@ func parseSignedImmediate(immTok *lexer.Token) (int16, error) {
 	case lexer.BASE_8_IMM:
 		base = 8
 	default:
-		return 0, fmt.Errorf("invalid immediate type %s", lexer.DescribeTokenKind(immTok.Kind))
+		return 0, &asmerr.InvalidImmediateError{Token: immTok}
 	}
 
 	res, err := strconv.ParseInt(imm, base, 16)
@@ -261,7 +289,7 @@ func parseSigned64Immediate(immTok *lexer.Token) (int64, error) {
 	case lexer.BASE_8_IMM:
 		base = 8
 	default:
-		return 0, fmt.Errorf("invalid immediate type %s", lexer.DescribeTokenKind(immTok.Kind))
+		return 0, &asmerr.InvalidImmediateError{Token: immTok}
 	}
 
 	res, err := strconv.ParseInt(imm, base, 64)

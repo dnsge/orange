@@ -59,7 +59,7 @@ type Statement struct {
 }
 
 type Relocator interface {
-	AddressFor(label *lexer.Token) (uint32, error)
+	AddressFor(label *lexer.Token) (uint32, bool)
 	OffsetFor(label *lexer.Token) (uint16, error)
 	SignedOffsetFor(label *lexer.Token) (int16, error)
 }

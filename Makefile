@@ -14,3 +14,7 @@ mult: all
 
 generate:
 	go generate ./...
+
+%.orange: all
+	./out/orangeasm ./programs/$*.orange ./$*.out
+	./out/orangevm ./$*.out

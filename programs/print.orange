@@ -1,3 +1,5 @@
+.section text
+
 	ADR r1, $outputString
 	PUSH r1		; save string pointer for syscall
 	BL $strLen	; call strLen
@@ -18,16 +20,18 @@ $strLen:
 	;  - size, on stack
 
 	MOVZ r2, #0
-$strLenLoop:
+$_strLen.loop:
 	LDBYTE r3, [r1]
 	CMPI r3, #0
-	B.EQ $strLenDone
+	B.EQ $_strLen.done
 	ADDI r2, r2, #1		; increase length by one
 	ADDI r1, r1, #1		; advance pointer by one byte
-	B $strLenLoop
-$strLenDone:
+	B $_strLen.loop
+$_strLen.done:
 	PUSH r2
 	BREG r15
+
+.section data
 
 $outputString:
 	.string "Hello from inside the Orange VM!"

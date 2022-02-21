@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/dnsge/orange/internal/asm/asmerr"
 	"github.com/dnsge/orange/internal/asm/lexer"
 	"math"
 )
@@ -63,13 +64,17 @@ var pseudoStatements = []pseudoStatement{
 			}
 
 			movStatement.Relocate = func(relocator Relocator) error {
-				address, err := relocator.AddressFor(adrStatement.Body[2])
-				if err != nil {
-					return err
+				address, found := relocator.AddressFor(adrStatement.Body[2])
+				if !found {
+					return &asmerr.LabelNotFoundError{Label: adrStatement.Body[2]}
 				}
 
 				if address > math.MaxUint16 {
-					return fmt.Errorf("unable to represent absolute address %d in 16 bits", address)
+					return &asmerr.BadComputedAddressError{
+						Label:    adrStatement.Body[2],
+						Computed: int64(address),
+						Signed:   false,
+					}
 				}
 				movStatement.Body[2].Value = fmt.Sprintf("#%d", address)
 				return nil
