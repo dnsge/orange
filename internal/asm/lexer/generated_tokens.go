@@ -1,6 +1,6 @@
 // Generated token definitions
 //
-// Generated at 2022-02-17T23:32:21-05:00
+// Generated at 2022-02-20T20:35:47-05:00
 
 package lexer
 
@@ -61,6 +61,12 @@ const (
 	BASE_10_IMM
 	BASE_16_IMM
 	_immEnd
+	_directiveStart
+	LABEL_DECLARATION
+	SECTION
+	FILL_STATEMENT
+	STRING_STATEMENT
+	_directiveEnd
 	STRING
 	LABEL
 	COMMA
@@ -68,12 +74,6 @@ const (
 	RBRACKET
 	COMMENT
 	LINE_END
-	_directiveStart
-	LABEL_DECLARATION
-	SECTION
-	FILL_STATEMENT
-	STRING_STATEMENT
-	_directiveEnd
 )
 
 // IsTokenIdentifier returns whether the token is in the Identifier category
@@ -115,9 +115,9 @@ func addLexerPatterns(lexer *lexmachine.Lexer) {
 	// STRING
 	lexer.Add([]byte("`[^`]*`"), tokenOfKindSliced(STRING, 1, 1))
 	// LABEL_DECLARATION
-	lexer.Add([]byte("\\$[a-zA-Z][a-zA-Z0-9]*:"), tokenOfKindSliced(LABEL_DECLARATION, 1, 1))
+	lexer.Add([]byte("\\$[a-zA-Z_][a-zA-Z0-9_.]*:"), tokenOfKindSliced(LABEL_DECLARATION, 1, 1))
 	// LABEL
-	lexer.Add([]byte("\\$[a-zA-Z][a-zA-Z0-9]*"), tokenOfKindSliced(LABEL, 1, 0))
+	lexer.Add([]byte("\\$[a-zA-Z_][a-zA-Z0-9_.]*"), tokenOfKindSliced(LABEL, 1, 0))
 	// SECTION
 	lexer.Add([]byte("\\.section"), tokenOfKind(SECTION))
 	// FILL_STATEMENT

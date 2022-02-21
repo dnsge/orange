@@ -12,8 +12,8 @@ var instructionTokens = []*Instruction{
 	{"STRING", NoCategory, OneOf(`"[^"]*"`, "`[^`]*`"), Slice(1, 1)},
 
 	// Labels
-	{"LABEL_DECLARATION", "directive", Only(`\$[a-zA-Z][a-zA-Z0-9]*:`), Slice(1, 1)},
-	{"LABEL", NoCategory, Only(`\$[a-zA-Z][a-zA-Z0-9]*`), Slice(1, 0)},
+	{"LABEL_DECLARATION", "directive", Only(`\$[a-zA-Z_][a-zA-Z0-9_.]*:`), Slice(1, 1)},
+	{"LABEL", NoCategory, Only(`\$[a-zA-Z_][a-zA-Z0-9_.]*`), Slice(1, 0)},
 
 	// Directives
 	{"SECTION", "directive", Only(`\.section`), NoSlice},
@@ -68,4 +68,11 @@ var instructionTokens = []*Instruction{
 
 	// Generic identifier (last match)
 	{"IDENTIFIER", "identifier", Only(`[a-zA-Z][a-zA-Z0-9]*`), NoSlice},
+}
+
+var enumOrder = []string{
+	OpCategory,
+	"identifier",
+	"imm",
+	"directive",
 }

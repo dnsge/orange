@@ -92,13 +92,16 @@ func mapToCategories(in []*Instruction) ([]*categoryOutput, map[string][]*Instru
 }
 
 func generateEnumOutput(categoryMap map[string][]*Instruction) ([]string, []string) {
+	usedCategories := make(map[string]struct{})
 	used := make(map[string]struct{})
 
 	var lines []string
 	var opStrings []string
-	lines = append(lines, "_invalid TokenKind = iota")
-	for category, iList := range categoryMap {
-		if category != "" {
+
+	emitAllForCategory := func(category string) {
+		iList := categoryMap[category]
+
+		if category != NoCategory {
 			lines = append(lines, fmt.Sprintf("_%sStart", category))
 		}
 		for _, ins := range iList {
@@ -119,5 +122,19 @@ func generateEnumOutput(categoryMap map[string][]*Instruction) ([]string, []stri
 			lines = append(lines, fmt.Sprintf("_%sEnd", category))
 		}
 	}
+
+	lines = append(lines, "_invalid TokenKind = iota")
+	for _, orderedName := range enumOrder {
+		emitAllForCategory(orderedName)
+		usedCategories[orderedName] = struct{}{}
+	}
+
+	for category := range categoryMap {
+		if _, ok := usedCategories[category]; ok {
+			continue
+		}
+		emitAllForCategory(category)
+	}
+
 	return lines, opStrings
 }
