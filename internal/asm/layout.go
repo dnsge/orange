@@ -26,7 +26,9 @@ func newLayout() *Layout {
 }
 
 type Section struct {
+	// The user-defined section name
 	Name string
+	// The size of the section in bytes
 	Size int
 
 	Statements          []*parser.Statement
@@ -147,6 +149,7 @@ func (l *Layout) Assemble(assembleFunc func(*parser.Statement, TraversalState) (
 	address := 0
 	for _, sec := range l.Sections {
 		j := 0
+		sec.AssembledStatements = make([]arch.Instruction, sec.Size/4)
 		for i := range sec.Statements {
 			s := sec.Statements[i]
 			bound := &boundTraversalState{

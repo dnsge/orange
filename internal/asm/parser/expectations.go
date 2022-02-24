@@ -1,12 +1,13 @@
-package lexer
+package parser
 
 import (
 	"fmt"
+	"github.com/dnsge/orange/internal/asm/lexer"
 	"strings"
 )
 
 // Expect returns an ExpectationEntry that captures an expected TokenKind
-func Expect(kind TokenKind) ExpectationEntry {
+func Expect(kind lexer.TokenKind) ExpectationEntry {
 	return &singleExpectationEntry{
 		kind: kind,
 		keep: true,
@@ -14,7 +15,7 @@ func Expect(kind TokenKind) ExpectationEntry {
 }
 
 // ExpectIgnore returns an ExpectationEntry that expects but ignores a TokenKind
-func ExpectIgnore(kind TokenKind) ExpectationEntry {
+func ExpectIgnore(kind lexer.TokenKind) ExpectationEntry {
 	return &singleExpectationEntry{
 		kind: kind,
 		keep: false,
@@ -22,7 +23,7 @@ func ExpectIgnore(kind TokenKind) ExpectationEntry {
 }
 
 // ExpectAny returns an ExpectationEntry that captures one of any given TokenKind
-func ExpectAny(kinds ...TokenKind) ExpectationEntry {
+func ExpectAny(kinds ...lexer.TokenKind) ExpectationEntry {
 	return &multipleExpectationEntry{
 		kinds: kinds,
 		keep:  true,
@@ -30,7 +31,7 @@ func ExpectAny(kinds ...TokenKind) ExpectationEntry {
 }
 
 // ExpectAnyIgnore returns an ExpectationEntry that expects but ignores one of any given TokenKind
-func ExpectAnyIgnore(kinds ...TokenKind) ExpectationEntry {
+func ExpectAnyIgnore(kinds ...lexer.TokenKind) ExpectationEntry {
 	return &multipleExpectationEntry{
 		kinds: kinds,
 		keep:  false,
@@ -38,11 +39,11 @@ func ExpectAnyIgnore(kinds ...TokenKind) ExpectationEntry {
 }
 
 type singleExpectationEntry struct {
-	kind TokenKind
+	kind lexer.TokenKind
 	keep bool
 }
 
-func (s *singleExpectationEntry) Matches(kind TokenKind) bool {
+func (s *singleExpectationEntry) Matches(kind lexer.TokenKind) bool {
 	return s.kind == kind
 }
 
@@ -51,15 +52,15 @@ func (s *singleExpectationEntry) Keep() bool {
 }
 
 func (s *singleExpectationEntry) Describe() string {
-	return DescribeTokenKind(s.kind)
+	return lexer.DescribeTokenKind(s.kind)
 }
 
 type multipleExpectationEntry struct {
-	kinds []TokenKind
+	kinds []lexer.TokenKind
 	keep  bool
 }
 
-func (m *multipleExpectationEntry) Matches(kind TokenKind) bool {
+func (m *multipleExpectationEntry) Matches(kind lexer.TokenKind) bool {
 	for _, k := range m.kinds {
 		if k == kind {
 			return true
@@ -74,12 +75,12 @@ func (m *multipleExpectationEntry) Keep() bool {
 
 func (m *multipleExpectationEntry) Describe() string {
 	if len(m.kinds) == 1 {
-		return DescribeTokenKind(m.kinds[0])
+		return lexer.DescribeTokenKind(m.kinds[0])
 	}
 
 	res := "one of "
 	for i := range m.kinds {
-		res += DescribeTokenKind(m.kinds[i])
+		res += lexer.DescribeTokenKind(m.kinds[i])
 		if i != len(m.kinds)-1 {
 			res += ", "
 		}
@@ -91,7 +92,7 @@ func (m *multipleExpectationEntry) Describe() string {
 // ExpectationEntry describes a possible token expectation that can be matched
 // within stream of many Tokens.
 type ExpectationEntry interface {
-	Matches(kind TokenKind) bool
+	Matches(kind lexer.TokenKind) bool
 	Keep() bool
 	Describe() string
 }
@@ -130,7 +131,7 @@ func (e *Expectation) ExtractionCount() int {
 // enough to store all the expected tokens.
 //
 // Because append is used, dest MUST NOT need to grow.
-func ExtractExpectedStructure(stream *TokenStream, dest *[]*Token, exp *Expectation) error {
+func ExtractExpectedStructure(stream *lexer.TokenStream, dest *[]*lexer.Token, exp *Expectation) error {
 	for _, e := range exp.entries {
 		if !stream.HasNext() {
 			// Only report EOF errors if we cared about capturing the last token
@@ -152,7 +153,7 @@ func ExtractExpectedStructure(stream *TokenStream, dest *[]*Token, exp *Expectat
 		} else {
 			return &ExtractionError{
 				expectations:  []*Expectation{exp},
-				parseMessages: []string{fmt.Sprintf("unexpected token %s at %d:%d (expected %s)", DescribeToken(actual), actual.Row, actual.Column, e.Describe())},
+				parseMessages: []string{fmt.Sprintf("unexpected token %s at %d:%d (expected %s)", lexer.DescribeToken(actual), actual.Row, actual.Column, e.Describe())},
 			}
 		}
 	}
@@ -171,10 +172,10 @@ func OneOf(expectations ...*Expectation) *OneOfExpectations {
 
 // ExtractOneOfExpectedStructure functions similar to ExtractExpectedStructure,
 // but instead extracts the first matching expectation from OneOfExpectations.
-func ExtractOneOfExpectedStructure(stream *TokenStream, dest *[]*Token, exps *OneOfExpectations) error {
+func ExtractOneOfExpectedStructure(stream *lexer.TokenStream, dest *[]*lexer.Token, exps *OneOfExpectations) error {
 	var errorMessages []string
 
-	origDest := make([]*Token, len(*dest), cap(*dest))
+	origDest := make([]*lexer.Token, len(*dest), cap(*dest))
 	copy(origDest, *dest)
 	startStreamPos := stream.Pos()
 
@@ -201,7 +202,7 @@ outer:
 					*dest = append(*dest, actual)
 				}
 			} else {
-				errorMessages = append(errorMessages, fmt.Sprintf("unexpected token %s at %d:%d (expected %s)", DescribeToken(actual), actual.Row, actual.Column, e.Describe()))
+				errorMessages = append(errorMessages, fmt.Sprintf("unexpected token %s at %d:%d (expected %s)", lexer.DescribeToken(actual), actual.Row, actual.Column, e.Describe()))
 				continue outer
 			}
 		}
@@ -217,12 +218,12 @@ outer:
 }
 
 type Extractable interface {
-	Extract(stream *TokenStream, dest *[]*Token) error
+	Extract(stream *lexer.TokenStream, dest *[]*lexer.Token) error
 	ExtractionCount() int
 	Description() string
 }
 
-func (e *Expectation) Extract(stream *TokenStream, dest *[]*Token) error {
+func (e *Expectation) Extract(stream *lexer.TokenStream, dest *[]*lexer.Token) error {
 	return ExtractExpectedStructure(stream, dest, e)
 }
 
@@ -230,7 +231,7 @@ func (e *Expectation) Description() string {
 	return e.description
 }
 
-func (o *OneOfExpectations) Extract(stream *TokenStream, dest *[]*Token) error {
+func (o *OneOfExpectations) Extract(stream *lexer.TokenStream, dest *[]*lexer.Token) error {
 	return ExtractOneOfExpectedStructure(stream, dest, o)
 }
 

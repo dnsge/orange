@@ -25,6 +25,11 @@ func (i *Instruction) EnumName() string {
 // CaptureFunc returns the proper token capture function based on the
 // set TokenSlice
 func (i *Instruction) CaptureFunc() string {
+	if i.TokenName == "STRING" {
+		// gross hack
+		return fmt.Sprintf(`tokenOfString(%s)`, i.EnumName())
+	}
+
 	if i.Slice == NoSlice {
 		return fmt.Sprintf(`tokenOfKind(%s)`, i.EnumName())
 	} else {

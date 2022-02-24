@@ -62,6 +62,8 @@ func DescribeTokenKind(kind TokenKind) string {
 		return ".fill"
 	case STRING_STATEMENT:
 		return ".string"
+	case ADDRESS_OF:
+		return ".addressOf"
 	case ADD:
 		return "ADD"
 	case ADDI:

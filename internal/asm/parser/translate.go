@@ -1,10 +1,7 @@
 package parser
 
 import (
-	"fmt"
-	"github.com/dnsge/orange/internal/asm/asmerr"
 	"github.com/dnsge/orange/internal/asm/lexer"
-	"math"
 )
 
 var pseudoStatements = []pseudoStatement{
@@ -53,31 +50,15 @@ var pseudoStatements = []pseudoStatement{
 		convert: func(adrStatement *Statement) ([]*Statement, error) {
 			// ADR r1, $label
 			// will become
-			// MOVZ r1, #absAddress
+			// MOVZ r1, .addressOf $label
 
 			movStatement := &Statement{
 				Body: []*lexer.Token{
 					remapToken(adrStatement.Body[0], lexer.MOVZ, "MOVZ"),
 					adrStatement.Body[1],
-					remapToken(adrStatement.Body[1], lexer.BASE_10_IMM, "#0"),
+					remapToken(adrStatement.Body[2], lexer.ADDRESS_OF, ".addressOf"),
+					adrStatement.Body[2],
 				}, Kind: InstructionStatement,
-			}
-
-			movStatement.Relocate = func(relocator Relocator) error {
-				address, found := relocator.AddressFor(adrStatement.Body[2])
-				if !found {
-					return &asmerr.LabelNotFoundError{Label: adrStatement.Body[2]}
-				}
-
-				if address > math.MaxUint16 {
-					return &asmerr.BadComputedAddressError{
-						Label:    adrStatement.Body[2],
-						Computed: int64(address),
-						Signed:   false,
-					}
-				}
-				movStatement.Body[2].Value = fmt.Sprintf("#%d", address)
-				return nil
 			}
 
 			return []*Statement{movStatement}, nil

@@ -1,10 +1,12 @@
 package asm
 
 import (
+	"fmt"
 	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/asm/asmerr"
 	"github.com/dnsge/orange/internal/asm/lexer"
 	"github.com/dnsge/orange/internal/asm/parser"
+	"math"
 	"strconv"
 )
 
@@ -102,8 +104,8 @@ func assembleMTypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 	return arch.EncodeMTypeInstruction(instruction), nil
 }
 
-func assembleETypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
-	if len(args) != 2 {
+func assembleETypeInstruction(opcode arch.Opcode, args []*lexer.Token, relocator parser.Relocator) (arch.Instruction, error) {
+	if len(args) < 2 {
 		return 0, &asmerr.InvalidArgumentCountError{
 			Opcode:   opcode,
 			Expected: 2,
@@ -116,7 +118,17 @@ func assembleETypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Ins
 		return 0, err
 	}
 
-	imm, err := parseUnsignedImmediate(args[1])
+	var imm uint16
+	if len(args) == 2 {
+		imm, err = parseUnsignedImmediate(args[1])
+	} else if len(args) == 3 {
+		if args[1].Kind == lexer.ADDRESS_OF {
+			imm, err = determineAddressOf(args[2], relocator)
+		} else {
+			return 0, fmt.Errorf("invalid token %s for e-type immediate", lexer.DescribeToken(args[1]))
+		}
+	}
+
 	if err != nil {
 		return 0, err
 	}
@@ -311,4 +323,21 @@ func parseOffsetOrLabel(tok *lexer.Token, relocator parser.Relocator) (int16, er
 	} else {
 		return parseSignedImmediate(tok)
 	}
+}
+
+func determineAddressOf(tok *lexer.Token, relocator parser.Relocator) (uint16, error) {
+	addr, ok := relocator.AddressFor(tok)
+	if !ok {
+		return 0, &asmerr.LabelNotFoundError{Label: tok}
+	}
+
+	if addr > math.MaxUint16 {
+		return 0, &asmerr.BadComputedAddressError{
+			Label:    tok,
+			Computed: int64(addr),
+			Signed:   true,
+		}
+	}
+
+	return uint16(addr), nil
 }

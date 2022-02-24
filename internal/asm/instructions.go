@@ -25,7 +25,7 @@ func assembleInstruction(opStatement *parser.Statement, relocator parser.Relocat
 	case arch.IType_M:
 		return assembleMTypeInstruction(opcode, args)
 	case arch.IType_E:
-		return assembleETypeInstruction(opcode, args)
+		return assembleETypeInstruction(opcode, args, relocator)
 	case arch.IType_BI:
 		return assembleBTypeImmInstruction(opcode, args, relocator)
 	case arch.IType_B:

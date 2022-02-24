@@ -183,7 +183,7 @@ func parseDirectiveTokens(directive *lexer.Token, stream *lexer.TokenStream) (*S
 
 // handlePrefixedExtraction returns a slice of Tokens after extracting the
 // expected tokens from the TokenStream
-func handlePrefixedExtraction(stream *lexer.TokenStream, prefix *lexer.Token, extractable lexer.Extractable) ([]*lexer.Token, error) {
+func handlePrefixedExtraction(stream *lexer.TokenStream, prefix *lexer.Token, extractable Extractable) ([]*lexer.Token, error) {
 	// reserve space for prefix and expectations
 	body := make([]*lexer.Token, 1, extractable.ExtractionCount()+1)
 	body[0] = prefix

@@ -1,6 +1,6 @@
 // Generated token definitions
 //
-// Generated at 2022-02-20T21:50:15-05:00
+// Generated at 2022-02-24T14:30:33-05:00
 
 package lexer
 
@@ -67,6 +67,7 @@ const (
 	SECTION
 	FILL_STATEMENT
 	STRING_STATEMENT
+	ADDRESS_OF
 	_directiveEnd
 	STRING
 	LABEL
@@ -112,9 +113,9 @@ func addLexerPatterns(lexer *lexmachine.Lexer) {
 	// BASE_16_IMM
 	lexer.Add([]byte("#0x(-?[0-9A-Fa-f]+)"), tokenOfKind(BASE_16_IMM))
 	// STRING
-	lexer.Add([]byte("\"[^\"]*\""), tokenOfKindSliced(STRING, 1, 1))
+	lexer.Add([]byte("\"(\\\\\"|[^\"])*\""), tokenOfString(STRING))
 	// STRING
-	lexer.Add([]byte("`[^`]*`"), tokenOfKindSliced(STRING, 1, 1))
+	lexer.Add([]byte("`[^`]*`"), tokenOfString(STRING))
 	// LABEL_DECLARATION
 	lexer.Add([]byte("\\$[a-zA-Z_][a-zA-Z0-9_.]*:"), tokenOfKindSliced(LABEL_DECLARATION, 1, 1))
 	// LABEL
@@ -125,6 +126,8 @@ func addLexerPatterns(lexer *lexmachine.Lexer) {
 	lexer.Add([]byte("\\.fill"), tokenOfKind(FILL_STATEMENT))
 	// STRING_STATEMENT
 	lexer.Add([]byte("\\.string"), tokenOfKind(STRING_STATEMENT))
+	// ADDRESS_OF
+	lexer.Add([]byte("\\.addressOf"), tokenOfKind(ADDRESS_OF))
 	// COMMA
 	lexer.Add([]byte(","), tokenOfKind(COMMA))
 	// LBRACKET

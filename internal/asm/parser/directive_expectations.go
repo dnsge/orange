@@ -6,29 +6,35 @@ import (
 
 var (
 	// .section [identifier]
-	sectionDeclaration_expectation = lexer.NewExpectation(
+	sectionDeclaration_expectation = NewExpectation(
 		".section identifier",
-		lexer.Expect(lexer.IDENTIFIER),
+		Expect(lexer.IDENTIFIER),
 	)
 	// [$label]:\n
-	labelDeclaration_expectation = lexer.NewExpectation("$label:")
+	labelDeclaration_expectation = NewExpectation("$label:")
 	// .fill [imm]
-	fillStatement_expectation = lexer.NewExpectation(
+	fillStatement_expectation = NewExpectation(
 		".fill #imm",
-		lexer.ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
-		lexer.Expect(lexer.LINE_END),
+		ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
+		Expect(lexer.LINE_END),
 	)
 	// .string "my string"
-	stringStatement_expectation = lexer.NewExpectation(
+	stringStatement_expectation = NewExpectation(
 		".string \"My string\"",
-		lexer.Expect(lexer.STRING),
-		lexer.Expect(lexer.LINE_END),
+		Expect(lexer.STRING),
+		Expect(lexer.LINE_END),
+	)
+	// .addressOf $label
+	addressOf_expectation = NewExpectation(
+		".addressOf $label",
+		Expect(lexer.LABEL),
 	)
 
-	directiveKindExpectationMap = map[lexer.TokenKind]*lexer.Expectation{
+	directiveKindExpectationMap = map[lexer.TokenKind]*Expectation{
 		lexer.SECTION:           sectionDeclaration_expectation,
 		lexer.LABEL_DECLARATION: labelDeclaration_expectation,
 		lexer.FILL_STATEMENT:    fillStatement_expectation,
 		lexer.STRING_STATEMENT:  stringStatement_expectation,
+		lexer.ADDRESS_OF:        addressOf_expectation,
 	}
 )

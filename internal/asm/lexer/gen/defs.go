@@ -9,7 +9,7 @@ var instructionTokens = []*Instruction{
 	{"BASE_8_IMM", "imm", Only(`#0o(-?[0-7]+)`), NoSlice},
 	{"BASE_10_IMM", "imm", Only(`#(0|-?[1-9][0-9]*)`), NoSlice},
 	{"BASE_16_IMM", "imm", Only(`#0x(-?[0-9A-Fa-f]+)`), NoSlice},
-	{"STRING", NoCategory, OneOf(`"[^"]*"`, "`[^`]*`"), Slice(1, 1)},
+	{"STRING", NoCategory, OneOf(`"(\\"|[^"])*"`, "`[^`]*`"), Slice(1, 1)},
 
 	// Labels
 	{"LABEL_DECLARATION", "directive", Only(`\$[a-zA-Z_][a-zA-Z0-9_.]*:`), Slice(1, 1)},
@@ -19,6 +19,7 @@ var instructionTokens = []*Instruction{
 	{"SECTION", "directive", Only(`\.section`), NoSlice},
 	{"FILL_STATEMENT", "directive", Only(`\.fill`), NoSlice},
 	{"STRING_STATEMENT", "directive", Only(`\.string`), NoSlice},
+	{"ADDRESS_OF", "directive", Only(`\.addressOf`), NoSlice},
 
 	// Whitespace + Formatting
 	{"COMMA", NoCategory, Only(`,`), NoSlice},

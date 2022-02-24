@@ -34,4 +34,4 @@ $_strLen.done:
 .section data
 
 $outputString:
-	.string "Hello from inside the Orange VM!"
+	.string "Hello from inside the Orange VM!\n"

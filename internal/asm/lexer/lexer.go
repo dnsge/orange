@@ -5,6 +5,18 @@ import (
 	"github.com/timtadh/lexmachine"
 	"github.com/timtadh/lexmachine/machines"
 	"log"
+	"strings"
+)
+
+var (
+	escapeReplacer = strings.NewReplacer(
+		`\"`, `"`,
+		`\n`, "\n",
+		`\t`, "\t",
+		`\r`, "\r",
+		`\b`, "\b",
+		`\\`, `\`,
+	)
 )
 
 func tokenOfKind(kind TokenKind) lexmachine.Action {
@@ -27,6 +39,27 @@ func tokenOfKindSliced(kind TokenKind, startOffset, endOffset int) lexmachine.Ac
 		return &Token{
 			Kind:   kind,
 			Value:  string(match.Bytes[startOffset : len(match.Bytes)-endOffset]),
+			Row:    match.StartLine,
+			Column: match.StartColumn,
+		}, nil
+	}
+}
+
+func tokenOfString(kind TokenKind) lexmachine.Action {
+	return func(scan *lexmachine.Scanner, match *machines.Match) (interface{}, error) {
+		if len(match.Bytes) < 2 {
+			return nil, fmt.Errorf("expected string with len >= %d but got %d", 2, len(match.Bytes))
+		}
+
+		delim := match.Bytes[0]
+		stringValue := string(match.Bytes[1 : len(match.Bytes)-1])
+		if delim == '"' {
+			stringValue = escapeReplacer.Replace(stringValue)
+		}
+
+		return &Token{
+			Kind:   kind,
+			Value:  stringValue,
 			Row:    match.StartLine,
 			Column: match.StartColumn,
 		}, nil
