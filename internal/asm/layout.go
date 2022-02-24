@@ -2,6 +2,7 @@ package asm
 
 import (
 	"fmt"
+	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/asm/asmerr"
 	"github.com/dnsge/orange/internal/asm/lexer"
 	"github.com/dnsge/orange/internal/asm/parser"
@@ -28,8 +29,9 @@ type Section struct {
 	Name string
 	Size int
 
-	Statements     []*parser.Statement
-	StatementSizes []int
+	Statements          []*parser.Statement
+	StatementSizes      []int
+	AssembledStatements []arch.Instruction
 }
 
 // SectionByName returns the existing section with the given name or returns
@@ -128,9 +130,23 @@ type TraversalState interface {
 
 // Traverse iterates over each statement throughout the binary, calling the
 // traversal function along the way with each statement and a bound TraversalState.
-func (l *Layout) Traverse(traversalFunc func(*parser.Statement, TraversalState) error) error {
+func (l *Layout) Traverse(traversalFunc func(section *Section) error) error {
+	for _, sec := range l.Sections {
+		err := traversalFunc(sec)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Assemble iterates over each statement throughout the binary, calling the
+// assembler function along the way with each statement and a bound TraversalState.
+func (l *Layout) Assemble(assembleFunc func(*parser.Statement, TraversalState) ([]arch.Instruction, error)) error {
 	address := 0
 	for _, sec := range l.Sections {
+		j := 0
 		for i := range sec.Statements {
 			s := sec.Statements[i]
 			bound := &boundTraversalState{
@@ -139,10 +155,15 @@ func (l *Layout) Traverse(traversalFunc func(*parser.Statement, TraversalState) 
 				currentAddress: address,
 			}
 
-			// apply traversal function
-			err := traversalFunc(s, bound)
+			// apply assemble function
+			assembled, err := assembleFunc(s, bound)
 			if err != nil {
 				return err
+			}
+
+			for _, a := range assembled {
+				sec.AssembledStatements[j] = a
+				j++
 			}
 
 			// increment address counter

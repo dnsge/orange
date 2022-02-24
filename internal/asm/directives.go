@@ -10,7 +10,7 @@ import (
 
 var byteOrder = binary.LittleEndian
 
-func (a *assemblyContext) assembleDataDirective(s *parser.Statement) ([]arch.Instruction, error) {
+func assembleDataDirective(s *parser.Statement) ([]arch.Instruction, error) {
 	directiveToken := s.Body[0]
 	if directiveToken.Kind == lexer.FILL_STATEMENT {
 		// fill a 64bit immediate

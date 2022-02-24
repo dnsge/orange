@@ -11,7 +11,7 @@ var (
 	ErrInvalidOpcode = fmt.Errorf("invalid opcode")
 )
 
-func (a *assemblyContext) assembleInstruction(opStatement *parser.Statement, relocator parser.Relocator) (arch.Instruction, error) {
+func assembleInstruction(opStatement *parser.Statement, relocator parser.Relocator) (arch.Instruction, error) {
 	opcodeToken := opStatement.Body[0]
 	args := opStatement.Body[1:]
 
