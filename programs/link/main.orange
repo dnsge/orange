@@ -1,0 +1,16 @@
+.section text
+
+	ADR r1, $outputString
+	PUSH r1		; save string pointer for syscall
+	BL $strLen	; call strLen
+	POP r3		; store returned length in r3 for syscall
+	POP r2		; restore string pointer in r2 for syscall
+	MOVZ r1, #1	; set file descriptor to stdout
+	MOVZ r9, #1 ; set syscall number to 1 = write
+	SYSCALL		; execute write syscall
+	HALT
+
+.section data
+
+$outputString:
+	.string "Hello from inside the Orange VM!\n"
