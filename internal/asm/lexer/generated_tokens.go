@@ -1,6 +1,6 @@
 // Generated token definitions
 //
-// Generated at 2022-02-24T14:30:33-05:00
+// Generated at 2022-03-05T00:15:58-05:00
 
 package lexer
 
@@ -106,6 +106,10 @@ func addLexerPatterns(lexer *lexmachine.Lexer) {
 	lexer.Add([]byte("r1[0-5]"), tokenOfKind(REGISTER))
 	// REGISTER
 	lexer.Add([]byte("rsp"), tokenOfKind(REGISTER))
+	// REGISTER
+	lexer.Add([]byte("rrp"), tokenOfKind(REGISTER))
+	// REGISTER
+	lexer.Add([]byte("rzr"), tokenOfKind(REGISTER))
 	// BASE_8_IMM
 	lexer.Add([]byte("#0o(-?[0-7]+)"), tokenOfKind(BASE_8_IMM))
 	// BASE_10_IMM

@@ -12,7 +12,9 @@ import (
 
 var (
 	registerAliases = map[string]arch.RegisterValue{
-		"rsp": arch.StackRegister,
+		"rsp": arch.StackRegister,  // register stack pointer
+		"rrp": arch.ReturnRegister, // register return pointer
+		"rzr": arch.ZeroRegister,   // register zero
 	}
 )
 
