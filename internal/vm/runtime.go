@@ -18,7 +18,9 @@ var (
 
 func (v *VirtualMachine) executeSyscall() {
 	syscallNumber := v.registers.Get(arch.SyscallRegister)
-	log.Printf("Executing syscall number %d\n", syscallNumber)
+	if !v.quiet {
+		log.Printf("Executing syscall number %d\n", syscallNumber)
+	}
 	switch syscallNumber {
 	case syscallRead:
 		v.syscallRead()

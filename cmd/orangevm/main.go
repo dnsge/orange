@@ -36,7 +36,7 @@ func main() {
 	defer inputFile.Close()
 
 	mem := memory.New()
-	sim := vm.NewVirtualMachine(mem)
+	sim := vm.NewVirtualMachine(mem, *quietFlag)
 	_, err = mem.LoadFromReader(0, inputFile)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "failed to load input file into memory: %v\n", err)

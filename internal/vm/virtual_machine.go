@@ -9,6 +9,8 @@ import (
 )
 
 type VirtualMachine struct {
+	quiet bool
+
 	programCounter uint32
 	registers      registerFile
 	alu            *ALU
@@ -30,8 +32,10 @@ func (v *VirtualMachine) Halted() bool {
 	return v.halted
 }
 
-func NewVirtualMachine(mem memory.Addressable) *VirtualMachine {
+func NewVirtualMachine(mem memory.Addressable, quiet bool) *VirtualMachine {
 	return &VirtualMachine{
+		quiet: quiet,
+
 		programCounter: 0,
 		registers:      initRegisterFile(),
 		alu:            newALU(),
