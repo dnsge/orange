@@ -1,0 +1,33 @@
+.section text
+
+	; step 1: print out the prompt
+	ADR r1, $promptStr
+	BL $printStr
+
+	; step 2: read input into a buffer
+	SUBI rsp, rsp, #255		; allocate 255 char buffer
+	MOV r1, rsp				; set buffer pointer for readStr
+	MOVZ r2, #255			; set buffer size fo readStr
+	BL $readStr
+
+	; step 3: print out response start
+	ADR r1, $responseStartStr
+	BL $printStr
+
+	; step 4: print name
+	MOV r1, rsp
+	BL $printStr
+
+	; step 5: print out response end
+	ADR r1, $responseEndStr
+	BL $printStr
+
+	; step 6: clean up resources
+	ADDI rsp, rsp, #255		; free char buffer
+	HALT
+
+.section data
+
+$promptStr:			.string "Hi! What is your name? "
+$responseStartStr: 	.string "Nice to meet you, "
+$responseEndStr: 	.string "I hope you are having an awesome day!\n"

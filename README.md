@@ -33,6 +33,9 @@ If you want to assemble a standalone program (e.g. no linking), use `./orangeasm
 - [linker example](./programs/link)
   - Showcases using multiple files to implement a program
   - The main file calls the strLen function in the second file
+- [greet.orange](./programs/greet/greet.orange)
+  - A simple program that greets the user
+  - Makes use of the strio part of the "standard library"
 
 ## Todo
 
