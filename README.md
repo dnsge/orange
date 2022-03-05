@@ -14,7 +14,9 @@ The ISA for orange is inspired by "LEGv8", a subset of ARMv8 (hence the name), w
 
 ## Usage
 
-To assemble a program, run the package located in `./cmd/orangeasm`. To run a program, run the package located in `./cmd/orangevm`.
+To assemble a program, run the package located in `./cmd/orangeasm`. To run a program, run the package located in `./cmd/orangevm`. To link multiple object files, run the package located in `./cmd/orangelinker`.
+
+If you want to assemble a standalone program (e.g. no linking), use `./orangeasm --executable [input file] [output file]`.
 
 ## Examples
 
@@ -28,13 +30,16 @@ To assemble a program, run the package located in `./cmd/orangeasm`. To run a pr
   - Example usage of write syscall for printing a string
 - [sections.orange](./programs/sections.orange)
   - Semantics for defining different sections
+- [linker example](./programs/link)
+  - Showcases using multiple files to implement a program
+  - The main file calls the strLen function in the second file
 
 ## Todo
 
 - [x] Better, more modular parsing of assembly
 - [x] Stack management
-- [ ] Proper error management
-- [ ] Object files with symbol table, relocation table
+- [x] Proper error management
+- [x] Object files with symbol table, relocation table
 - [ ] System calls (for console output)
 - [ ] Dynamic memory allocation via syscalls
 - [ ] Simple language + compiler
