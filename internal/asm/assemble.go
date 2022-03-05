@@ -123,7 +123,7 @@ func assembleETypeInstruction(opcode arch.Opcode, args []*lexer.Token, relocator
 		imm, err = parseUnsignedImmediate(args[1])
 	} else if len(args) == 3 {
 		if args[1].Kind == lexer.ADDRESS_OF {
-			imm, err = determineAddressOf(args[2], relocator)
+			imm, err = determine16AddressOf(args[2], relocator)
 		} else {
 			return 0, fmt.Errorf("invalid token %s for e-type immediate", lexer.DescribeToken(args[1]))
 		}
@@ -325,7 +325,7 @@ func parseOffsetOrLabel(tok *lexer.Token, relocator parser.Relocator) (int16, er
 	}
 }
 
-func determineAddressOf(tok *lexer.Token, relocator parser.Relocator) (uint16, error) {
+func determine16AddressOf(tok *lexer.Token, relocator parser.Relocator) (uint16, error) {
 	addr, ok := relocator.AddressFor(tok)
 	if !ok {
 		return 0, &asmerr.LabelNotFoundError{Label: tok}
@@ -340,4 +340,13 @@ func determineAddressOf(tok *lexer.Token, relocator parser.Relocator) (uint16, e
 	}
 
 	return uint16(addr), nil
+}
+
+func determineAddressOf(tok *lexer.Token, relocator parser.Relocator) (uint32, error) {
+	addr, ok := relocator.AddressFor(tok)
+	if !ok {
+		return 0, &asmerr.LabelNotFoundError{Label: tok}
+	}
+
+	return addr, nil
 }

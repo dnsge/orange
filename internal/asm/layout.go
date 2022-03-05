@@ -1,16 +1,11 @@
 package asm
 
 import (
-	"fmt"
 	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/asm/asmerr"
 	"github.com/dnsge/orange/internal/asm/lexer"
 	"github.com/dnsge/orange/internal/asm/parser"
 	"math"
-)
-
-var (
-	ErrLabelNotFound = fmt.Errorf("label not found")
 )
 
 type Layout struct {
@@ -72,6 +67,24 @@ func (l *Layout) LocateStatement(statement *parser.Statement) (int, bool) {
 	return 0, false
 }
 
+// LocateStatementWithinSection returns the relative address of the statement
+// to the start of the section it resides in.
+func (l *Layout) LocateStatementWithinSection(statement *parser.Statement) (int, *Section, bool) {
+	for _, sec := range l.Sections {
+		address := 0
+		for i := range sec.Statements {
+			s := sec.Statements[i]
+			if s == statement {
+				return address, sec, true
+			}
+
+			sSize := sec.StatementSizes[i]
+			address += sSize
+		}
+	}
+	return 0, nil, false
+}
+
 // LocateLabel returns the absolute address of the label in the final binary
 func (l *Layout) LocateLabel(label string) (uint32, bool) {
 	labelStatement, ok := l.Labels[label]
@@ -85,6 +98,21 @@ func (l *Layout) LocateLabel(label string) (uint32, bool) {
 	}
 
 	return uint32(located), true
+}
+
+// LocateLabelSection returns the section of the label
+func (l *Layout) LocateLabelSection(label string) (*Section, bool) {
+	labelStatement, ok := l.Labels[label]
+	if !ok {
+		return nil, false
+	}
+
+	_, section, found := l.LocateStatementWithinSection(labelStatement)
+	if !found {
+		return nil, false
+	}
+
+	return section, true
 }
 
 // InitWithStatements initializes the layout with a list of statements
@@ -128,6 +156,7 @@ type TraversalState interface {
 	parser.Relocator
 	Section() *Section
 	Address() int
+	AdvanceAddress(amount int)
 }
 
 // Traverse iterates over each statement throughout the binary, calling the
@@ -190,6 +219,16 @@ func (b *boundTraversalState) Section() *Section {
 
 func (b *boundTraversalState) Address() int {
 	return b.currentAddress
+}
+
+func (b *boundTraversalState) AdvanceAddress(amount int) {
+	// Yes, currentAddress is temporary because it is rebound in each call to
+	// assembleFunc. However, in the case that assembleFunc has to return multiple
+	// assembled statements (like in data directives), we want to be sure that
+	// every call to Address() returns the correct address no matter the context.
+	//
+	// So, if callers want Address() to be accurate, they  must use AdvanceAddress().
+	b.currentAddress += amount
 }
 
 func (b *boundTraversalState) AddressFor(label *lexer.Token) (uint32, bool) {

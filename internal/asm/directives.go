@@ -10,14 +10,26 @@ import (
 
 var byteOrder = binary.LittleEndian
 
-func assembleDataDirective(s *parser.Statement) ([]arch.Instruction, error) {
+func assembleDataDirective(s *parser.Statement, state TraversalState) ([]arch.Instruction, error) {
 	directiveToken := s.Body[0]
 	if directiveToken.Kind == lexer.FILL_STATEMENT {
-		// fill a 64bit immediate
-		val, err := parseSigned64Immediate(s.Body[1])
-		if err != nil {
-			return nil, err
+		var val int64
+		if s.Body[1].Kind == lexer.ADDRESS_OF {
+			// fill address of a label
+			addr, err := determineAddressOf(s.Body[2], state)
+			if err != nil {
+				return nil, err
+			}
+			val = int64(addr)
+		} else {
+			// fill a 64bit immediate
+			imm, err := parseSigned64Immediate(s.Body[1])
+			if err != nil {
+				return nil, err
+			}
+			val = imm
 		}
+
 		return []arch.Instruction{
 			arch.Instruction(val & 0xFFFFFFFF),
 			arch.Instruction((val >> 32) & 0xFFFFFFFF),

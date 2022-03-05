@@ -53,9 +53,8 @@ func TokenizeAll(data []byte) ([]*lexer.Token, error) {
 //  1. An instruction (e.g. ADD r3, r2, r1)
 //  2. A directive (e.g. a label declaration)
 type Statement struct {
-	Body     []*lexer.Token
-	Kind     StatementKind
-	Relocate func(relocator Relocator) error
+	Body []*lexer.Token
+	Kind StatementKind
 }
 
 type Relocator interface {
