@@ -1,14 +1,11 @@
 package asm
 
 import (
-	"encoding/binary"
 	"fmt"
 	"github.com/dnsge/orange/internal/arch"
 	"github.com/dnsge/orange/internal/asm/lexer"
 	"github.com/dnsge/orange/internal/asm/parser"
 )
-
-var byteOrder = binary.LittleEndian
 
 func assembleDataDirective(s *parser.Statement, state TraversalState) ([]arch.Instruction, error) {
 	directiveToken := s.Body[0]
@@ -75,7 +72,7 @@ func convertStringToWords(str string) []arch.Instruction {
 			end = len(asBytes)
 		}
 		copy(part, asBytes[start:end])
-		packed := byteOrder.Uint32(part)
+		packed := arch.ByteOrder.Uint32(part)
 		allWords = append(allWords, packed)
 	}
 

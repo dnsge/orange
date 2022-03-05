@@ -156,7 +156,7 @@ func (l *linkContext) relocateAll(objectFiles []*InputObjectFile) error {
 // writeInstructions writes each instruction to the output writer
 func (l *linkContext) writeInstructions(writer io.Writer) error {
 	for i := range l.Instructions {
-		if err := binary.Write(writer, binary.LittleEndian, l.Instructions[i]); err != nil {
+		if err := binary.Write(writer, arch.ByteOrder, l.Instructions[i]); err != nil {
 			return err
 		}
 	}

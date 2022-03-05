@@ -77,7 +77,7 @@ func AssembleObjectFile(inputFile io.Reader, outputFile io.Writer) error {
 func writeStatements(layout *Layout, outputFile io.Writer) error {
 	return layout.Traverse(func(section *Section) error {
 		for _, a := range section.AssembledStatements {
-			err := binary.Write(outputFile, byteOrder, a)
+			err := binary.Write(outputFile, arch.ByteOrder, a)
 			if err != nil {
 				return err
 			}

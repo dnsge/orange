@@ -76,7 +76,7 @@ func readObjectFile(inputFile io.Reader) (*InputObjectFile, error) {
 
 	for _, sec := range of.Sections {
 		for n := 0; n < len(sec.RawData); n++ {
-			err = binary.Read(inputFile, binary.LittleEndian, &sec.RawData[n])
+			err = binary.Read(inputFile, arch.ByteOrder, &sec.RawData[n])
 			if err != nil {
 				return nil, err
 			}

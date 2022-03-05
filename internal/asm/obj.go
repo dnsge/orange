@@ -128,7 +128,7 @@ func (o *ObjectFile) WriteToFile(layout *Layout, outputFile io.Writer) (err erro
 	// write assembled statements
 	err = layout.Traverse(func(section *Section) error {
 		for _, a := range section.AssembledStatements {
-			err = binary.Write(outputFile, byteOrder, a)
+			err = binary.Write(outputFile, arch.ByteOrder, a)
 			if err != nil {
 				return err
 			}

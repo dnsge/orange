@@ -1,12 +1,8 @@
 package memory
 
 import (
-	"encoding/binary"
 	"fmt"
-)
-
-var (
-	byteOrder = binary.LittleEndian
+	"github.com/dnsge/orange/internal/arch"
 )
 
 // block describes a virtual memory space containing [startAddress, endAddress)
@@ -34,11 +30,11 @@ func (b *block) Read(address uint32, size uint32) uint64 {
 	case 8: // byte read
 		return uint64(b.data[dataStart])
 	case 16: // half-word read
-		return uint64(byteOrder.Uint16(b.data[dataStart : dataStart+2]))
+		return uint64(arch.ByteOrder.Uint16(b.data[dataStart : dataStart+2]))
 	case 32: // word read
-		return uint64(byteOrder.Uint32(b.data[dataStart : dataStart+4]))
+		return uint64(arch.ByteOrder.Uint32(b.data[dataStart : dataStart+4]))
 	case 64: // double word (register) read
-		return byteOrder.Uint64(b.data[dataStart : dataStart+8])
+		return arch.ByteOrder.Uint64(b.data[dataStart : dataStart+8])
 	default:
 		panic(fmt.Sprintf("invalid read size of %d", size))
 	}
@@ -52,6 +48,6 @@ func (b *block) Write(address uint32, size uint32, data uint64) {
 	dataStart := address - b.startAddress
 	dataEnd := dataStart + bytes
 	split := make([]byte, 8)
-	byteOrder.PutUint64(split, data)
+	arch.ByteOrder.PutUint64(split, data)
 	copy(b.data[dataStart:dataEnd], split)
 }
