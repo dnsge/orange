@@ -50,3 +50,26 @@ $_strLen.loop:
 $_strLen.done:
 	PUSH r2
 	BREG rrp
+
+$strCmp:
+	;; strCmp lexographically compares two null-terminated strings
+	;;
+	;; Arguments:
+	;;  - r1: pointer to first string
+	;;  - r2: pointer to second string
+	;;
+	;; Returns:
+	;;  - comparison, on stack
+	LDBYTE r3, [r1]			; deref first string
+	LDBYTE r4, [r2]			; deref second string
+	CMPI r3, #0				; check if first string ended
+	B.EQ $_strCmp.done
+	CMP r3, r4
+	B.NEQ $_strCmp.done		; if a != b, go to done
+	ADDI r1, #1				; advance first string
+	ADDI r2, #1				; advance second string
+	B $strCmp				; go to top of loop
+$_strCmp.done:
+	SUB r5, r3, r4			; compute difference
+	PUSH r5
+	BREG rrp
