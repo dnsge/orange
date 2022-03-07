@@ -24,8 +24,8 @@ $_strLen.loop:
 	LDBYTE r3, [r1]
 	CMPI r3, #0
 	B.EQ $_strLen.done
-	ADDI r2, r2, #1		; increase length by one
-	ADDI r1, r1, #1		; advance pointer by one byte
+	ADDI r2, #1		; increase length by one
+	ADDI r1, #1		; advance pointer by one byte
 	B $_strLen.loop
 $_strLen.done:
 	PUSH r2

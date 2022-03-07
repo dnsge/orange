@@ -5,9 +5,9 @@
 	BL $printStr
 
 	; step 2: read input into a buffer
-	SUBI rsp, rsp, #255		; allocate 255 char buffer
+	SUBI rsp, #256		; allocate 256 char buffer
 	MOV r1, rsp				; set buffer pointer for readStr
-	MOVZ r2, #255			; set buffer size fo readStr
+	MOVZ r2, #256			; set buffer size fo readStr
 	BL $readStr
 
 	; step 3: print out response start
@@ -23,7 +23,7 @@
 	BL $printStr
 
 	; step 6: clean up resources
-	ADDI rsp, rsp, #255		; free char buffer
+	ADDI rsp, #256		; free char buffer
 	HALT
 
 .section data

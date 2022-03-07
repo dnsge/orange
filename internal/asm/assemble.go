@@ -19,52 +19,71 @@ var (
 )
 
 func assembleATypeInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
-	if len(args) != 3 {
+	var regs []arch.RegisterValue
+	if len(args) == 2 {
+		// handle special self-assignment case
+		// For example, ADD r1, r2
+		// which computes ADD r1, r1, r2
+		parsedRegs, err := parseRegisters(args)
+		if err != nil {
+			return 0, err
+		}
+		regs = []arch.RegisterValue{parsedRegs[0], parsedRegs[0], parsedRegs[1]}
+	} else if len(args) != 3 {
 		return 0, &asmerr.InvalidArgumentCountError{
 			Opcode:   opcode,
 			Expected: 3,
 			Got:      len(args),
 		}
-	}
-
-	parsedRegs, err := parseRegisters(args)
-	if err != nil {
-		return 0, err
+	} else {
+		parsedRegs, err := parseRegisters(args)
+		if err != nil {
+			return 0, err
+		}
+		regs = parsedRegs
 	}
 
 	instruction := arch.ATypeInstruction{
 		Opcode:  opcode,
-		RegDest: parsedRegs[0],
-		RegA:    parsedRegs[1],
-		RegB:    parsedRegs[2],
+		RegDest: regs[0],
+		RegA:    regs[1],
+		RegB:    regs[2],
 	}
 
 	return arch.EncodeATypeInstruction(instruction), nil
 }
 
 func assembleATypeImmInstruction(opcode arch.Opcode, args []*lexer.Token) (arch.Instruction, error) {
-	if len(args) != 3 {
+	var regs []arch.RegisterValue
+	if len(args) == 2 {
+		parsedReg, err := parseRegister(args[0])
+		if err != nil {
+			return 0, err
+		}
+		regs = []arch.RegisterValue{parsedReg, parsedReg}
+	} else if len(args) != 3 {
 		return 0, &asmerr.InvalidArgumentCountError{
 			Opcode:   opcode,
 			Expected: 3,
 			Got:      len(args),
 		}
+	} else {
+		parsedRegs, err := parseRegisters(args[0:2])
+		if err != nil {
+			return 0, err
+		}
+		regs = parsedRegs
 	}
 
-	parsedRegs, err := parseRegisters(args[0:2])
-	if err != nil {
-		return 0, err
-	}
-
-	imm, err := parseUnsignedImmediate(args[2])
+	imm, err := parseUnsignedImmediate(args[len(args)-1])
 	if err != nil {
 		return 0, err
 	}
 
 	instruction := arch.ATypeImmInstruction{
 		Opcode:    opcode,
-		RegDest:   parsedRegs[0],
-		RegA:      parsedRegs[1],
+		RegDest:   regs[0],
+		RegA:      regs[1],
 		Immediate: imm,
 	}
 

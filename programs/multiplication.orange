@@ -8,12 +8,12 @@ $loop:
     CMP r5, r0
     B.NEQ $add
 $incr:
-    LSL r4, r4, #1
-    LSL r2, r2, #1
-    ADDI r10, r10, #1 ; this is a comment
+    LSL r4, #1
+    LSL r2, #1
+    ADDI r10, #1 ; this is a comment
     CMP r10, r11
     B.NEQ $loop
     HALT
 $add:
-    ADD r1, r1, r2
+    ADD r1, r2
     B $incr

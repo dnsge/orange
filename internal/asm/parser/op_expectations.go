@@ -7,22 +7,38 @@ import (
 
 var (
 	// [OPCODE] [DEST], [SRC1], [SRC2]
-	aType_expectation = NewExpectation(
-		"OPCODE r3, r1, r2",
-		Expect(lexer.REGISTER),
-		ExpectIgnore(lexer.COMMA),
-		Expect(lexer.REGISTER),
-		ExpectIgnore(lexer.COMMA),
-		Expect(lexer.REGISTER),
+	aType_expectation = OneOf(
+		NewExpectation(
+			"OPCODE r3, r1, r2",
+			Expect(lexer.REGISTER),
+			ExpectIgnore(lexer.COMMA),
+			Expect(lexer.REGISTER),
+			ExpectIgnore(lexer.COMMA),
+			Expect(lexer.REGISTER),
+		),
+		NewExpectation(
+			"OPCODE r2, r1",
+			Expect(lexer.REGISTER),
+			ExpectIgnore(lexer.COMMA),
+			Expect(lexer.REGISTER),
+		),
 	)
 	// [OPCODE] [DEST], [SRC1], [IMM]
-	aiType_expectation = NewExpectation(
-		"OPCODE r2, r1, #imm",
-		Expect(lexer.REGISTER),
-		ExpectIgnore(lexer.COMMA),
-		Expect(lexer.REGISTER),
-		ExpectIgnore(lexer.COMMA),
-		ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
+	aiType_expectation = OneOf(
+		NewExpectation(
+			"OPCODE r2, r1, #imm",
+			Expect(lexer.REGISTER),
+			ExpectIgnore(lexer.COMMA),
+			Expect(lexer.REGISTER),
+			ExpectIgnore(lexer.COMMA),
+			ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
+		),
+		NewExpectation(
+			"OPCODE r1, #imm",
+			Expect(lexer.REGISTER),
+			ExpectIgnore(lexer.COMMA),
+			ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
+		),
 	)
 	mType_expectation = OneOf(
 		// [OPCODE] [REG1], [[REG2], [IMM]]
