@@ -51,6 +51,10 @@ func (r *resolverTraversalState) addCurrentToRelocationTable(label *lexer.Token)
 func (r *resolverTraversalState) AddressFor(label *lexer.Token) (uint32, bool) {
 	res, ok := r.state.AddressFor(label)
 	if !ok {
+		if isPrivateLabel(label) {
+			// we must locate private labels, so return not found
+			return 0, false
+		}
 		r.addUnresolvedLabel(label)
 		return 0, true
 	}
@@ -67,6 +71,10 @@ func (r *resolverTraversalState) OffsetFor(label *lexer.Token) (uint16, error) {
 	// Check if LabelNotFoundError and add unresolved if so
 	var nfErr *asmerr.LabelNotFoundError
 	if errors.As(err, &nfErr) {
+		if isPrivateLabel(label) {
+			// we must locate private labels, so return an error
+			return 0, nfErr
+		}
 		r.addUnresolvedLabel(label)
 		return 0, nil
 	} else if err != nil {
@@ -89,6 +97,10 @@ func (r *resolverTraversalState) SignedOffsetFor(label *lexer.Token) (int16, err
 	// Check if LabelNotFoundError and add unresolved if so
 	var nfErr *asmerr.LabelNotFoundError
 	if errors.As(err, &nfErr) {
+		if isPrivateLabel(label) {
+			// we must locate private labels, so return an error
+			return 0, nfErr
+		}
 		r.addUnresolvedLabel(label)
 		return 0, nil
 	} else if err != nil {
@@ -115,4 +127,10 @@ func (r *resolverTraversalState) Address() int {
 
 func (r *resolverTraversalState) AdvanceAddress(amount int) {
 	r.state.AdvanceAddress(amount)
+}
+
+// isPrivateLabel returns whether the given label is only visible within
+// the current file, denoted by an underscore preceding the name.
+func isPrivateLabel(label *lexer.Token) bool {
+	return label.Value[0] == '_'
 }
