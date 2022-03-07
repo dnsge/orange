@@ -11,13 +11,13 @@
 	HALT
 
 $strLen:
-	; strLen returns the length of the null-terminated string
-	;
-	; Arguments:
-	;  - r1: pointer to string
-	;
-	; Returns:
-	;  - size, on stack
+	;; strLen returns the length of the null-terminated string
+	;;
+	;; Arguments:
+	;;  - r1: pointer to string
+	;;
+	;; Returns:
+	;;  - size, on stack
 
 	MOVZ r2, #0
 $_strLen.loop:

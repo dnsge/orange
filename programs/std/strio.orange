@@ -3,10 +3,10 @@
 ; This file implements common string and string-io tasks.
 
 $printStr:
-	; printStr prints a null-terminated string to stdout
-	;
-	; Arguments:
-	;  - r1: pointer to string
+	;; printStr prints a null-terminated string to stdout
+	;;
+	;; Arguments:
+	;;  - r1: pointer to string
 	PUSH rrp
 	PUSH r1		; save string pointer for syscall
 	BL $strLen	; call strLen
@@ -19,11 +19,11 @@ $printStr:
 	BREG rrp
 
 $readStr:
-	; readStr reads a null-terminated string from stdin
-	;
-	; Arguments:
-	;  - r1: pointer to buffer
-	;  - r2: buffer size
+	;; readStr reads a null-terminated string from stdin
+	;;
+	;; Arguments:
+	;;  - r1: pointer to buffer
+	;;  - r2: buffer size
 	MOV r3, r2				; put buffer size in r3 for syscall
 	MOV r2, r1				; put buffer ptr in r2 for syscall
 	MOVZ r1, #0				; set file descriptor to stdin
@@ -32,13 +32,13 @@ $readStr:
 	BREG rrp
 
 $strLen:
-	; strLen returns the length of the null-terminated string
-	;
-	; Arguments:
-	;  - r1: pointer to string
-	;
-	; Returns:
-	;  - size, on stack
+	;; strLen returns the length of the null-terminated string
+	;;
+	;; Arguments:
+	;;  - r1: pointer to string
+	;;
+	;; Returns:
+	;;  - size, on stack
 	MOVZ r2, #0
 $_strLen.loop:
 	LDBYTE r3, [r1]
