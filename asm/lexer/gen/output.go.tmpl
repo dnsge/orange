@@ -1,0 +1,53 @@
+// Generated token definitions
+//
+// Generated at {{ .Time }}
+
+package lexer
+
+import (
+    "github.com/dnsge/orange/arch"
+    "github.com/timtadh/lexmachine"
+)
+
+type TokenKind int
+
+const (
+{{- range .TokenEnumLines }}
+    {{ printf "%s" . }}
+{{- end }}
+)
+
+{{ range .Categories }}
+// IsToken{{ .Title }} returns whether the token is in the {{ .Title }} category
+func IsToken{{ .Title }}(kind TokenKind) bool {
+    return kind > _{{ .ID }}Start && kind < _{{ .ID }}End
+}
+
+{{ end }}
+
+// addLexerPatterns initializes the lexer with patterns for instruction parsing
+func addLexerPatterns(lexer *lexmachine.Lexer) {
+{{ range $ins := .AllInstructions -}}
+    {{ if $ins.Pattern.IsDefault -}}
+            // {{ $ins.TokenName }}
+            lexer.Add([]byte({{ printf "%q" $ins.TokenRegex }}), {{ $ins.CaptureFunc }})
+    {{ else }}
+        {{- range $pattern := $ins.Pattern.LexerPatterns -}}
+            // {{ $ins.TokenName }}
+            lexer.Add([]byte({{ printf "%q" $pattern }}), {{ $ins.CaptureFunc }})
+        {{ end -}}
+    {{- end -}}
+{{- end -}}
+}
+
+// GetTokenOpOpcode returns the arch.Opcode for the given TokenKind
+func GetTokenOpOpcode(opKind TokenKind) arch.Opcode {
+    switch opKind {
+{{- range .OpTokens -}}
+    case {{ . }}:
+        return arch.{{ . }}
+{{ end -}}
+    default:
+        panic("lexer.GetTokenOpOpcode: invalid opcode type")
+    }
+}

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/dnsge/orange/internal/linker"
+	"github.com/dnsge/orange/linker"
 	"io"
 	"os"
 )

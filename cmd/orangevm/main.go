@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/dnsge/orange/internal/memory"
-	"github.com/dnsge/orange/internal/vm"
+	"github.com/dnsge/orange/memory"
+	"github.com/dnsge/orange/vm"
 	"os"
 )
 

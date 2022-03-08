@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/dnsge/orange/internal/asm"
+	"github.com/dnsge/orange/asm"
 	"os"
 )
 

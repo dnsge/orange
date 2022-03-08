@@ -41,7 +41,7 @@ ABI:
 | `STWORD` | M-Type  | Store lower 4 byte word                        |
 | `STHWRD` | M-Type  | Store lower 2 byte half-word                   |
 | `STBYTE` | M-Type  | Store lowest byte                              |
-| `ADR`    | M-Type  | Pseudo-instruction to load label address       |
+| `ADR`    | E-Type  | Pseudo-instruction to load label address       |
 | `MOVZ`   | E-Type  | Zero register and move immediate               |
 | `MOVK`   | E-Type  | Move immediate into lower 16 bits              |
 | `BREG`   | B-Type  | Branch to address in register                  |
