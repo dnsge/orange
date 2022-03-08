@@ -88,6 +88,11 @@ var (
 		"OPCODE [#imm|$label]",
 		ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM, lexer.LABEL),
 	)
+	// [OPCODE] [REG1]
+	r_expectation = NewExpectation(
+		"OPCODE r1",
+		Expect(lexer.REGISTER),
+	)
 	// [OPCODE]
 	oType_expectation = NewExpectation("OPCODE")
 
@@ -102,7 +107,7 @@ var (
 	)
 	// [OPCODE] [REG1], [IMM]
 	cmpi_expectation = NewExpectation(
-		"CMP r1, #imm",
+		"CMPI r1, #imm",
 		Expect(lexer.REGISTER),
 		ExpectIgnore(lexer.COMMA),
 		ExpectAny(lexer.BASE_10_IMM, lexer.BASE_16_IMM, lexer.BASE_8_IMM),
@@ -120,11 +125,6 @@ var (
 		Expect(lexer.REGISTER),
 		ExpectIgnore(lexer.COMMA),
 		ExpectAny(lexer.LABEL),
-	)
-	// [OPCODE] [REG1]
-	r_expectation = NewExpectation(
-		"OPCODE r1",
-		Expect(lexer.REGISTER),
 	)
 )
 

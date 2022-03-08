@@ -159,8 +159,8 @@ type TraversalState interface {
 	AdvanceAddress(amount int)
 }
 
-// Traverse iterates over each statement throughout the binary, calling the
-// traversal function along the way with each statement and a bound TraversalState.
+// Traverse iterates over each section throughout the binary, calling the
+// traversal function along the way.
 func (l *Layout) Traverse(traversalFunc func(section *Section) error) error {
 	for _, sec := range l.Sections {
 		err := traversalFunc(sec)
@@ -227,7 +227,7 @@ func (b *boundTraversalState) AdvanceAddress(amount int) {
 	// assembled statements (like in data directives), we want to be sure that
 	// every call to Address() returns the correct address no matter the context.
 	//
-	// So, if callers want Address() to be accurate, they  must use AdvanceAddress().
+	// So, if callers want Address() to be accurate, they must use AdvanceAddress().
 	b.currentAddress += amount
 }
 
